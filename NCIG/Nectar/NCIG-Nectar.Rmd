@@ -32,17 +32,17 @@ options(xtable.comment = FALSE)
 
 ```{r sites}
 
-NCIG_sites = c("all1", "all2", "app1", "arm1", 
-  "arm2", "bcr1", "bcr2", "ber1", "ber3", "byd1", "byd2", "cra1", 
-  "cre1", "dun2", "dun3", "fis1", "gro1", "gro2", "har1", "jon1", 
-  "nie1", "nkn1", "nkn2", "nor1", "pio1", "pio2", "prd1", "prd2", 
-  "pre1", "pre2", "pre3", "pre4", "sie1", "sut2", "tie1", "uth1", 
-  "uth2", "uth3", "van1", "van2", "ver1", "vos1")
+# NCIG_sites = c("all1", "all2", "app1", "arm1", 
+#   "arm2", "bcr1", "bcr2", "ber1", "ber3", "byd1", "byd2", "cra1", 
+#   "cre1", "dun2", "dun3", "fis1", "gro1", "gro2", "har1", "jon1", 
+#   "nie1", "nkn1", "nkn2", "nor1", "pio1", "pio2", "prd1", "prd2", 
+#   "pre1", "pre2", "pre3", "pre4", "sie1", "sut2", "tie1", "uth1", 
+#   "uth2", "uth3", "van1", "van2", "ver1", "vos1")
 
 
-# NCIG_sites = c("all1","all2","arm1","arm2","ber1","ber3","cre1","dun2","dun3",
-#                "pio1","pio2","gro1","gro2","nkn1","nkn2","nor1","sut2",
-#                "sie1","prd1","prd2","ver1")
+NCIG_sites = c("all1","all2","arm1","arm2","ber1","ber3","cre1","dun2","dun3",
+               "pio1","pio2","gro1","gro2","nkn1","nkn2","nor1","sut2",
+               "sie1","prd1","prd2","ver1")
 ```
 
 
@@ -158,7 +158,7 @@ nectar_density_table <- function(yr, flt, label) {
     filter(`Nectar Plant Species` %in% flt) %>%
     
     xtable(digits = 0,
-           caption=paste(yr, "Nectar plant species density: average density (count / 100 m2) across all rounds"),
+           caption=paste(yr, "Nectar plant species density: average density (count / m2) across all rounds"),
            label=paste("t:",label,sep="")) %>%
     print(include.rownames = FALSE, NA.string="-", 
           table.placement = "p",
@@ -169,7 +169,7 @@ nectar_density_table <- function(yr, flt, label) {
 ```
 
 ```{r nectar_density}
-nectar_density_table(2016, unique(nectar$`Nectar Plant Species`),
+nectar_density_table(yr = 2016, flt = unique(nectar$`Nectar Plant Species`),
                      label = "density2016")
 nectar_density_table(2017, setdiff(unique(nectar$`Nectar Plant Species`),
                                    c("milkweed strip: common milkweed ramet",
