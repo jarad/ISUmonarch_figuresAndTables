@@ -79,13 +79,17 @@ milkweed plants (if no milkweed present, no larvae present).
 nectar_table <- function(yr, flt, label) {
   nectar %>%
     
+    mutate(round = as.factor(round)) %>%
+    
     filter(siteID %in% NCIG_sites, year == yr) %>%
     
     group_by(`Nectar Plant Species`, siteID, round) %>%
     summarize(count = sum(count)) %>%
+    complete(siteID, round, fill = list(count = 0)) %>%
     group_by(`Nectar Plant Species`, siteID) %>%
     summarize(total = mean(count) %>% round(1)) %>%
     complete(siteID = NCIG_sites) %>%
+    replace(.==0, NA) %>%
     tidyr::spread(siteID, total, fill=NA, drop=FALSE) %>%
     arrange(`Nectar Plant Species`) %>% 
     
@@ -129,7 +133,7 @@ nectar_table(2017, c("butterfly milkweed ramet",
 NCIG_sites = unique(transect$transectID)
 
 nectar_density_table <- function(yr, flt, label) {
-  nectar %>%
+nectar %>%
   mutate(`Nectar Plant Species` = 
            fct_recode(`Nectar Plant Species`,
                       smartweed = "swamp smartweed",
@@ -138,14 +142,17 @@ nectar_density_table <- function(yr, flt, label) {
                       `shepherds purse` = "shepherd's purse",
                       `yellow sweet clover` = "yellow sweetclover"),
          year = as.character(year),
-         round = as.numeric(round)) %>% 
+         round = as.factor(round)) %>% 
   
   filter(transectID %in% NCIG_sites, year == yr) %>%
   
-  left_join(subset(ISUmonarch::survey, year==yr) %>% select(transectID, length, round), by=c("transectID", "round")) %>%
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
   
   group_by(`Nectar Plant Species`, transectID, round) %>%
-  summarize(density = 100*sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
   
   group_by(`Nectar Plant Species`, transectID) %>%
   summarize(density = mean(density, na.rm=TRUE)) %>%
@@ -153,12 +160,13 @@ nectar_density_table <- function(yr, flt, label) {
   complete(transectID = NCIG_sites) %>%
   ungroup() %>% 
   select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
   tidyr::spread(transectID, density, fill=NA) %>%
   arrange(`Nectar Plant Species`) %>% 
   
   filter(`Nectar Plant Species` %in% flt) %>%
     
-    xtable(digits = 0,
+  xtable(digits = 2,
            caption=paste(yr, "Nectar plant species density: average density (count / m2) across all rounds"),
            label=paste("t:",label,sep="")) %>%
     print(include.rownames = FALSE, NA.string="-", 
@@ -172,12 +180,12 @@ nectar_density_table <- function(yr, flt, label) {
 ```{r nectar_density, warning=FALSE, message=FALSE}
 nectar_density_table(yr = 2016, flt = unique(nectar$`Nectar Plant Species`),
                      label = "density2016")
-nectar_density_table(2017, setdiff(unique(nectar$`Nectar Plant Species`),
-                                   c("milkweed strip: common milkweed ramet",
-                                     "milkweed strip: common milkweed strip",
-                                     "butterfly milkweed ramet",
-                                     "common milkweed ramet",
-                                     "swamp milkweed ramet")),
+nectar_density_table(2017, unique(nectar$`Nectar Plant Species`),
+                                   # c("milkweed strip: common milkweed ramet",
+                                   #   "milkweed strip: common milkweed strip",
+                                   #   "butterfly milkweed ramet",
+                                   #   "common milkweed ramet",
+                                   #   "swamp milkweed ramet")),
                      label = "density2017")
 # nectar_density_table(2017, c("butterfly milkweed ramet",
 #                              "common milkweed ramet",
