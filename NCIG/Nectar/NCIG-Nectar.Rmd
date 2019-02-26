@@ -198,3 +198,60 @@ nectar_density_table(2017, unique(nectar$`Nectar Plant Species`),
 # butterfly milkweed ramet, common milkweed ramet, swamp milkweed ramet
 ```
 
+
+```{r nectar_density_heatmap}
+NCIG_sites = unique(transect$transectID)
+
+nectar_density_heatmap <- function(yr, flt) {
+nectar %>%
+  mutate(`Nectar Plant Species` = 
+           fct_recode(`Nectar Plant Species`,
+                      smartweed = "swamp smartweed",
+                      smartweed = "pennsylvania smartweed",
+                      `culvers root` = "culver's root",
+                      `shepherds purse` = "shepherd's purse",
+                      `yellow sweet clover` = "yellow sweetclover"),
+         year = as.character(year),
+         round = as.factor(round)) %>% 
+  
+  filter(transectID %in% NCIG_sites, year == yr) %>%
+  
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
+  
+  group_by(`Nectar Plant Species`, transectID, round) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  group_by(`Nectar Plant Species`, transectID) %>%
+  summarize(density = mean(density, na.rm=TRUE)) %>%
+  
+  complete(transectID = NCIG_sites) %>%
+  ungroup() %>% 
+  select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
+  tidyr::spread(transectID, density, fill=NA) %>%
+  arrange(`Nectar Plant Species`) %>% 
+  
+  filter(`Nectar Plant Species` %in% flt) %>%
+  
+  gather(variable, value, -`Nectar Plant Species`) %>%
+  
+  ggplot(., aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
+  geom_tile(aes(fill = value)) + 
+  theme_bw() + labs(x="", y="") +
+  scale_fill_gradient(na.value = 'white', low="navy", high="salmon") +
+  theme(axis.text.x = element_text(angle = 90))
+}
+```
+
+```{r nectar_heatmap, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
+nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`))
+```
+
+
+```{r nectar_heatmap1, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
+nectar_density_heatmap(2017, unique(nectar$`Nectar Plant Species`))
+```
+
