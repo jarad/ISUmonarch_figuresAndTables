@@ -40,9 +40,12 @@ options(xtable.comment = FALSE)
 #   "uth2", "uth3", "van1", "van2", "ver1", "vos1")
 
 
-NCIG_sites = c("all1","all2","arm1","arm2","ber1","ber3","cre1","dun2","dun3",
-               "pio1","pio2","gro1","gro2","nkn1","nkn2","nor1","sut2",
-               "sie1","prd1","prd2","ver1")
+# NCIG_sites = c("all1","all2","arm1","arm2","ber1","ber3","cre1","dun2","dun3",
+#                "pio1","pio2","gro1","gro2","nkn1","nkn2","nor1","sut2",
+#                "sie1","prd1","prd2","ver1")
+
+NCIG_sites = unique(transect$transectID)
+
 ```
 
 
@@ -81,16 +84,16 @@ nectar_table <- function(yr, flt, label) {
     
     mutate(round = as.factor(round)) %>%
     
-    filter(siteID %in% NCIG_sites, year == yr) %>%
+    filter(transectID %in% NCIG_sites, year == yr) %>%
     
-    group_by(`Nectar Plant Species`, siteID, round) %>%
+    group_by(`Nectar Plant Species`, transectID, round) %>%
     summarize(count = sum(count)) %>%
-    complete(siteID, round, fill = list(count = 0)) %>%
-    group_by(`Nectar Plant Species`, siteID) %>%
+    complete(transectID, round, fill = list(count = 0)) %>%
+    group_by(`Nectar Plant Species`, transectID) %>%
     summarize(total = mean(count) %>% round(1)) %>%
-    complete(siteID = NCIG_sites) %>%
+    complete(transectID = NCIG_sites) %>%
     replace(.==0, NA) %>%
-    tidyr::spread(siteID, total, fill=NA, drop=FALSE) %>%
+    tidyr::spread(transectID, total, fill=NA, drop=FALSE) %>%
     arrange(`Nectar Plant Species`) %>% 
     
     filter(`Nectar Plant Species` %in% flt) %>%
@@ -130,8 +133,6 @@ nectar_table(2017, c("butterfly milkweed ramet",
 
 
 ```{r nectar_density_table}
-NCIG_sites = unique(transect$transectID)
-
 nectar_density_table <- function(yr, flt, label) {
 nectar %>%
   mutate(`Nectar Plant Species` = 
@@ -239,9 +240,9 @@ nectar %>%
   gather(variable, value, -`Nectar Plant Species`) %>%
   
   ggplot(., aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
-  geom_tile(aes(fill = value)) + 
-  theme_bw() + labs(x="", y="") +
-  scale_fill_gradient(na.value = 'white', low="navy", high="salmon") +
+  geom_tile(aes(fill = value), color="grey") + 
+  theme_bw() + labs(x="", y="", fill="Log(Density)") +
+  scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
   theme(axis.text.x = element_text(angle = 90))
 }
 ```
