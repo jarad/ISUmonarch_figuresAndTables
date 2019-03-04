@@ -28,7 +28,9 @@ rsconnect/
 ISUmonarch_figuresAndTables.Rproj
 
 # tex files
-NCIG/Nectar/*.tex
-NCIG/Nectar/*.log
-NCIG/Nectar/*.out
-NCIG/Nectar/*.aux
+NCIG/*/*.tex
+NCIG/*/*.log
+NCIG/*/*.out
+NCIG/*/*.aux
+
+
