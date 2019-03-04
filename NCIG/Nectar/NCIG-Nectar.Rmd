@@ -112,17 +112,11 @@ nectar_table <- function(yr, flt, label) {
 ```{r nectar, warning=FALSE}
 nectar_table(2016, unique(nectar$`Nectar Plant Species`), 
              label = "nectar2016")
-nectar_table(2017, setdiff(unique(nectar$`Nectar Plant Species`),
-                                   c("milkweed strip: common milkweed ramet",
-                                     "milkweed strip: common milkweed strip",
-                                     "butterfly milkweed ramet",
-                                     "common milkweed ramet",
-                                     "swamp milkweed ramet")),
+nectar_table(2017, unique(nectar$`Nectar Plant Species`), 
              label = "nectar2017")
-nectar_table(2017, c("butterfly milkweed ramet",
-                             "common milkweed ramet",
-                             "swamp milkweed ramet"),
-             label = "ramet2017")
+nectar_table(2018, unique(nectar$`Nectar Plant Species`), 
+             label = "nectar2018")
+
 ```
 
 
@@ -181,22 +175,10 @@ nectar %>%
 ```{r nectar_density, warning=FALSE, message=FALSE}
 nectar_density_table(yr = 2016, flt = unique(nectar$`Nectar Plant Species`),
                      label = "density2016")
-nectar_density_table(2017, unique(nectar$`Nectar Plant Species`),
-                                   # c("milkweed strip: common milkweed ramet",
-                                   #   "milkweed strip: common milkweed strip",
-                                   #   "butterfly milkweed ramet",
-                                   #   "common milkweed ramet",
-                                   #   "swamp milkweed ramet")),
+nectar_density_table(yr = 2017, flt = unique(nectar$`Nectar Plant Species`),
                      label = "density2017")
-# nectar_density_table(2017, c("butterfly milkweed ramet",
-#                              "common milkweed ramet",
-#                              "swamp milkweed ramet"),
-#                      label = "density2017ramet")
-```
-
-```{r nectar_density2}
-# Make table for 
-# butterfly milkweed ramet, common milkweed ramet, swamp milkweed ramet
+nectar_density_table(yr = 2018, flt = unique(nectar$`Nectar Plant Species`),
+                     label = "density2018")
 ```
 
 
@@ -249,10 +231,7 @@ nectar %>%
 
 ```{r nectar_heatmap, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
 nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`))
-```
-
-
-```{r nectar_heatmap1, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
-nectar_density_heatmap(2017, unique(nectar$`Nectar Plant Species`))
+nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`))
+nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`))
 ```
 
