@@ -225,11 +225,11 @@ nectar %>%
   geom_tile(aes(fill = value), color="grey") + 
   theme_bw() + labs(x="", y="", fill="Log(Density)") +
   scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 }
 ```
 
-```{r nectar_heatmap, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
+```{r nectar_heatmap, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
 nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`))
 nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`))
 nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`))
