@@ -1,16 +1,14 @@
 ---
 title: "ISU Monarch Data Summary for NCIG"
-author: "Jarad Niemi and Seth Appelgate"
+author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
 date: "`r Sys.Date()`"
 header-includes:
   - \usepackage{rotating}
   - \usepackage{caption} 
   - \captionsetup[table]{skip=10pt}
-output: rmarkdown::pdf_document
-vignette: >
-  %\VignetteIndexEntry{ISU Monarch Data Summary for NCIG}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: 
+  pdf_document:
+    fig_caption: TRUE
 ---
 
 ```{r setup, purl=FALSE, echo=FALSE}
@@ -229,13 +227,18 @@ nectar %>%
 }
 ```
 
-Here are some heatmaps which give us a visual display of our data.
-\newpage
-```{r nectar_heatmap, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
-nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`))
-nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`))
-nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`))
-```
+<!-- Here are some heatmaps which give us a visual display of our data. -->
+<!-- \newpage -->
+<!-- ```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap=""} -->
+<!-- nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`)) -->
+<!-- ``` -->
+<!-- ```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
+<!-- nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`)) -->
+<!-- ``` -->
+<!-- ```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
+<!-- nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`)) -->
+<!-- ``` -->
+
 
 
 
@@ -292,22 +295,40 @@ tmp=nectar %>%
 
 Here are some heatmaps for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density.
 \newpage
-```{r nectar_heatmap2_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
+
+
+```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2016."}
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
+```
+
+
+```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2017."}
 nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
+```
+
+
+```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2018."}
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-
 Similarly, here are some heatmaps for density of species non planted.
+
+
 \newpage
-```{r nectar_heatmap2_non_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
+```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2016."}
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
-nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
-nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
+
+```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2017."}
+nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
+```
+
+
+```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2018."}
+nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
+```
 
 
 
@@ -370,22 +391,22 @@ tmp=nectar %>%
 ```
 
 
-Binary heatmaps for density of species planted.
-\newpage
-```{r nectar_binary_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
-nectar_binary_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
-nectar_binary_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
-nectar_binary_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
-```
+<!-- Binary heatmaps for density of species planted. -->
+<!-- \newpage -->
+<!-- ```{r nectar_binary_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
+<!-- nectar_binary_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted") -->
+<!-- nectar_binary_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted") -->
+<!-- nectar_binary_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted") -->
+<!-- ``` -->
 
 
-Binary heatmaps for density of species non planted.
-\newpage
-```{r nectar_binary_non_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9}
-nectar_binary_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
-nectar_binary_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
-nectar_binary_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
-```
+<!-- Binary heatmaps for density of species non planted. -->
+<!-- \newpage -->
+<!-- ```{r nectar_binary_non_planted, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
+<!-- nectar_binary_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted") -->
+<!-- nectar_binary_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted") -->
+<!-- nectar_binary_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted") -->
+<!-- ``` -->
 
 
 
