@@ -275,11 +275,15 @@ tmp=nectar %>%
   
   filter(`Nectar Plant Species` %in% flt) %>%
   
-  gather(variable, value, -`Nectar Plant Species`)
+  gather(variable, value, -`Nectar Plant Species`) %>%
+  
+  mutate(presence = ifelse(is.na(value), 0, 1))
   
   tran.order = tmp %>% group_by(variable) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(desc(avg.density)) %>% select(variable) %>% pull(variable)
   
-  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+  # species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+  
+  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
 
   tmp$variable <- factor(tmp$variable, levels = tran.order)
   tmp$`Nectar Plant Species` <- factor(tmp$`Nectar Plant Species`, levels = species.order)
@@ -293,40 +297,36 @@ tmp=nectar %>%
 }
 ```
 
-Here are some heatmaps for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density.
+Here are some heatmaps for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence.
 \newpage
 
 
-```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2016."}
+```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2017."}
+```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
 nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2018."}
+```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-Similarly, here are some heatmaps for density of species non planted.
-
-
-\newpage
-```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2016."}
+```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016."}
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
 
-```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2017."}
+```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
 nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
 
-```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average density for year 2018."}
+```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
