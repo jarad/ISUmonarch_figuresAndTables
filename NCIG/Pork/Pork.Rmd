@@ -1,5 +1,5 @@
 ---
-title: "ISU Monarch Data Summary for Pork Sites"
+title: "Summary Statistics: Establishing Monarch Butterfly Breeding Habitat on Iowa Swine Production Sites"
 author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
 date: "`r Sys.Date()`"
 header-includes:
@@ -35,13 +35,10 @@ NCIG_sites = unique(transect %>% filter(grant=="pork") %>% pull(transectID) %>% 
 ```
 
 
-Table \ref{t:nectar2016}, \ref{t:nectar2017}, and \ref{t:nectar2018} provide mean count of nectar plant species averaged across all data collection events. 
-Table \ref{t:ramet2017} provides mean count of milkweed ramets.
-Values in table represent the specific counting unit for each species, not necessarily a whole plant.
-Table \ref{t:density2016}, \ref{t:density2017}, and \ref{t:density2018} provide nectar plant species density (per 100m2) averaged across all data collection events. 
-Table \ref{t:density2017ramet} and \ref{t:density2018ramet} provides mean density of milkweed ramets.
-Values in table represent the specific counting unit for each species, not necessarily a whole plant.
-Figures \ref{fig:nectar_heatmap_planted_17}, \ref{fig:nectar_heatmap_planted_18}, \ref{fig:nectar_heatmap_non_planted_17}, \ref{fig:nectar_heatmap_non_planted_18}, and \ref{fig:ramet_heatmap_18} are heatmaps which plot the log density of species (planted and non-planted) with transects on the columns and species on the rows; transects are sorted by average density and species are sorted by average presence.
+Table \ref{t:nectar2016}, \ref{t:nectar2017}, and \ref{t:nectar2018} provide mean count of nectar plant species averaged across all data collection events within a year. Values in table represent the specific floral counting unit for each species (flower head, ramet [stem], spike, or umbel) and is not associated with number of plants. Floral counting units differ between species. Table \ref{t:density2016}, \ref{t:density2017}, and \ref{t:density2018} provide nectar plant species floral unit density (per m2) averaged across all data collection events within a year. Table \ref{t:ramet2018} provides mean counts of milkweed ramets. This data is unavailable for 2016 and 2017 therefore 2016 and 2017 do not have the associated milkweed ramet tables or figures. Table \ref{t:density2018ramet} provides mean density of milkweed ramets.
+
+Figures \ref{fig:nectar_heatmap_16}, \ref{fig:nectar_heatmap_planted_17}, \ref{fig:nectar_heatmap_planted_18}, \ref{fig:nectar_heatmap_non_planted_17}, and \ref{fig:nectar_heatmap_non_planted_18} are heatmaps which plot the log density of species floral counting units (planted as part of the seed mix and non-planted species) with transects on the columns and species on the rows; transects are sorted by average density and species are sorted by average presence. Figure \ref{fig:ramet_heatmap_18} is a heatmap which plots the log density of milkweed ramets with transects on the columns and species on the rows; transects are sorted by average density and species are sorted by average presence.
+
 
 
 <!-- Table \ref{t:environment} provides a binary response of whether there were any  -->
@@ -225,7 +222,7 @@ tmp=nectar %>%
   
   left_join(species[,c("common_name", "planted_non_planted")], by=c("Nectar Plant Species"="common_name")) %>%
     
-  filter(transectID %in% NCIG_sites, year == yr, planted_non_planted == plnt) %>%
+  filter(transectID %in% NCIG_sites, year %in% yr, planted_non_planted %in% plnt) %>%
   
   left_join(subset(ISUmonarch::survey, year==yr) %>% 
               mutate(round = as.factor(round)) %>%
@@ -273,9 +270,9 @@ tmp=nectar %>%
 \newpage
 
 
-<!-- # ```{r nectar_heatmap_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."} -->
-<!-- # nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted") -->
-<!-- # ``` -->
+```{r nectar_heatmap_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016. \\label{fig:nectar_heatmap_16}"}
+nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted","non planted"))
+```
 
 
 ```{r nectar_heatmap_planted_17, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017. \\label{fig:nectar_heatmap_planted_17}"}
@@ -342,7 +339,7 @@ ramet_table <- function(yr, flt, label) {
 ```
 
 ```{r ramet, warning=FALSE}
-ramet_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2017")
+# ramet_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2017")
 ramet_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2018")
 ```
 
@@ -400,7 +397,7 @@ ramet %>%
 ```
 
 ```{r ramet_density, warning=FALSE, message=FALSE}
-ramet_density_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "density2017ramet")
+# ramet_density_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "density2017ramet")
 ramet_density_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "density2018ramet")
 ```
 
