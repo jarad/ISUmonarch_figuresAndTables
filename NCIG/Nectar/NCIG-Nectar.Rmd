@@ -29,21 +29,12 @@ options(xtable.comment = FALSE)
 
 
 ```{r sites}
-
-# NCIG_sites = c("all1", "all2", "app1", "arm1", 
-#   "arm2", "bcr1", "bcr2", "ber1", "ber3", "byd1", "byd2", "cra1", 
-#   "cre1", "dun2", "dun3", "fis1", "gro1", "gro2", "har1", "jon1", 
-#   "nie1", "nkn1", "nkn2", "nor1", "pio1", "pio2", "prd1", "prd2", 
-#   "pre1", "pre2", "pre3", "pre4", "sie1", "sut2", "tie1", "uth1", 
-#   "uth2", "uth3", "van1", "van2", "ver1", "vos1")
-
-
 # NCIG_sites = c("all1","all2","arm1","arm2","ber1","ber3","cre1","dun2","dun3",
 #                "pio1","pio2","gro1","gro2","nkn1","nkn2","nor1","sut2",
 #                "sie1","prd1","prd2","ver1")
 
-NCIG_sites = unique(transect$transectID)
-
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 ```
 
 
@@ -212,8 +203,6 @@ nectar_density_table(yr = 2018, flt = unique(nectar$`Nectar Plant Species`),
 
 
 ```{r nectar_density_heatmap2}
-NCIG_sites = unique(transect$transectID)
-
 nectar_density_heatmap2 <- function(yr, flt, plnt="planted") {
 
 tmp=nectar %>%
@@ -281,6 +270,8 @@ nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), 
 
 
 ```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2018."}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted", "non planted"))
 ```
 
@@ -288,6 +279,8 @@ nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), 
 
 
 ```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
@@ -298,11 +291,15 @@ nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), 
 
 
 ```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=7, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
 ```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016."}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
@@ -313,6 +310,8 @@ nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), 
 
 
 ```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
 ```
 
@@ -320,7 +319,8 @@ nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), 
 
 
 ```{r nectar_binary_heatmap}
-NCIG_sites = unique(transect$transectID)
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 
 nectar_binary_heatmap <- function(yr, flt, plnt="planted") {
 
