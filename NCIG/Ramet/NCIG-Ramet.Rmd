@@ -6,11 +6,9 @@ header-includes:
   - \usepackage{rotating}
   - \usepackage{caption} 
   - \captionsetup[table]{skip=10pt}
-output: rmarkdown::pdf_document
-vignette: >
-  %\VignetteIndexEntry{ISU Monarch Data Summary for NCIG}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: 
+  pdf_document:
+    fig_caption: TRUE
 ---
 
 ```{r setup, purl=FALSE, echo=FALSE}
@@ -31,33 +29,23 @@ options(xtable.comment = FALSE)
 
 
 ```{r sites}
+sites = as.character(unique(transect$transectID))
+sites18 = as.character(unique(sites[!(sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
+sites = as.character(unique(sites[!(sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 
-NCIG_sites = unique(transect$transectID)
+milkweed_sites = c("tarm1b", "tall2a", "tber3a", "tnkn1a")
 
+
+ramet_species = unique(ramet$`Nectar Plant Species`)[!(unique(ramet$`Nectar Plant Species`) %in% "milkweed strip: common milkweed ramet")]
+milkweed_species = unique(ramet$`Nectar Plant Species`)[(unique(ramet$`Nectar Plant Species`) %in% "milkweed strip: common milkweed ramet")]
 ```
 
 
-Table \ref{t:nectar2016} and \ref{t:nectar2017} provide mean count of nectar plant species averaged across all 
+Table \ref{t:ramet2017} provides mean count of milkweed ramets averaged across all 
 data collection events. 
-Table \ref{t:ramet2017} provides mean count of milkweed ramets.
 Values in table represent the specific counting unit for each species, not necessarily a whole plant.
-Table \ref{t:density2016} and \ref{t:density2017} provide nectar plant species density (per 100m2) averaged across all data collection events. 
-Table \ref{t:density2017ramet} provides mean density of milkweed ramets.
+Table \ref{t:density2017ramet} provides mean density of milkweed ramets (per 100m2) averaged across all data collection events.
 Values in table represent the specific counting unit for each species, not necessarily a whole plant.
-
-Table \ref{t:daubenmire} provides average land cover percentage averaged across 
-all data collection events.
-
-Table \ref{t:robel} provides average amount of vegetation across all data 
-collection events.
-
-Table \ref{t:monarch} provides total number of monarchs sighted anywhere around 
-site during entire time at site, number of monarchs sighted during a survey 
-period, number of milkweed ramets (an upper limit of 20 per round per site, 
-although the same milkweed may have been surveyed in different rounds), 
-number of monarch eggs counted on milkweed plants (if no milkweed present, 
-no monarch eggs present, number of monarch larvae (caterpillars) counted on 
-milkweed plants (if no milkweed present, no larvae present).
 
 <!-- Table \ref{t:environment} provides a binary response of whether there were any  -->
 <!-- flowering plants or milkweed present in the area around the site during any  -->
@@ -67,19 +55,19 @@ milkweed plants (if no milkweed present, no larvae present).
 <!-- Ramet -->
 
 ```{r ramet_table_function}
-ramet_table <- function(yr, flt, label) {
+ramet_table <- function(yr, flt, transects, label) {
   ramet %>%
     
     mutate(round = as.factor(round)) %>%
     
-    filter(transectID %in% NCIG_sites, year == yr) %>%
+    filter(transectID %in% transects, year == yr) %>%
     
     group_by(`Nectar Plant Species`, transectID, round) %>%
     summarize(count = sum(count)) %>%
     complete(transectID, round, fill = list(count = 0)) %>%
     group_by(`Nectar Plant Species`, transectID) %>%
     summarize(total = mean(count) %>% round(1)) %>%
-    complete(transectID = NCIG_sites) %>%
+    complete(transectID = transects) %>%
     replace(.==0, NA) %>%
     tidyr::spread(transectID, total, fill=NA, drop=FALSE) %>%
     arrange(`Nectar Plant Species`) %>% 
@@ -87,7 +75,7 @@ ramet_table <- function(yr, flt, label) {
     filter(`Nectar Plant Species` %in% flt) %>%
     
     xtable(digits = 1,
-           caption=paste(yr, "nectar plant species: mean count across all surveys"),
+           caption=paste(yr, "ramet plant species: mean count across all surveys"),
            label = paste("t:",label,sep="")) %>%
     print(include.rownames = FALSE, NA.string="-", 
           table.placement = "p",
@@ -98,11 +86,15 @@ ramet_table <- function(yr, flt, label) {
 ```
 
 ```{r ramet, warning=FALSE}
-# ramet_table(yr=2016, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2016")
-ramet_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2017")
-ramet_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2018")
+ramet_table(yr=2017, flt=ramet_species, transects=sites, label = "ramet2017")
+ramet_table(yr=2018, flt=ramet_species, transects=sites18, label = "ramet2018")
 ```
 
+
+```{r milkweed, warning=FALSE}
+ramet_table(yr=2017, flt=milkweed_species, transects=milkweed_sites, label="milkweed2017")
+ramet_table(yr=2018, flt=milkweed_species, transects=milkweed_sites, label="milkweed2018")
+```
 
 
 
@@ -111,7 +103,7 @@ ramet_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "ramet201
 
 
 ```{r ramet_density_table}
-ramet_density_table <- function(yr, flt, label) {
+ramet_density_table <- function(yr, flt, transects, label) {
 ramet %>%
   mutate(`Nectar Plant Species` = 
            fct_recode(`Nectar Plant Species`,
@@ -123,7 +115,7 @@ ramet %>%
          year = as.character(year),
          round = as.factor(round)) %>% 
   
-  filter(transectID %in% NCIG_sites, year == yr) %>%
+  filter(transectID %in% transects, year == yr) %>%
   
   left_join(subset(ISUmonarch::survey, year==yr) %>% 
               mutate(round = as.factor(round)) %>%
@@ -136,7 +128,7 @@ ramet %>%
   group_by(`Nectar Plant Species`, transectID) %>%
   summarize(density = mean(density, na.rm=TRUE)) %>%
   
-  complete(transectID = NCIG_sites) %>%
+  complete(transectID = transects) %>%
   ungroup() %>% 
   select(`Nectar Plant Species`, transectID, density) %>%
   replace(.==0, NA) %>%
@@ -157,67 +149,92 @@ ramet %>%
 ```
 
 ```{r ramet_density, warning=FALSE, message=FALSE}
-# ramet_density_table(2016, c("butterfly milkweed ramet",
-#                              "common milkweed ramet",
-#                              "swamp milkweed ramet"),
-#                      label = "density2016ramet")
+ramet_density_table(yr=2017, flt=ramet_species, transects=sites,   label="density2017ramet")
+ramet_density_table(yr=2018, flt=ramet_species, transects=sites18, label="density2018ramet")
+```
 
-ramet_density_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "density2017ramet")
-ramet_density_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "density2018ramet")
+
+```{r milkweed_density, warning=FALSE, message=FALSE}
+ramet_density_table(yr=2017, flt=milkweed_species, transects=milkweed_sites,   label="density2017milkweed")
+ramet_density_table(yr=2018, flt=milkweed_species, transects=milkweed_sites, label="density2018milkweed")
 ```
 
 
 ```{r nectar_density_heatmap}
-ramet_density_heatmap <- function(yr, flt) {
-ramet %>%
-  mutate(`Nectar Plant Species` = 
-           fct_recode(`Nectar Plant Species`,
-                      smartweed = "swamp smartweed",
-                      smartweed = "pennsylvania smartweed",
-                      `culvers root` = "culver's root",
-                      `shepherds purse` = "shepherd's purse",
-                      `yellow sweet clover` = "yellow sweetclover"),
-         year = as.character(year),
-         round = as.factor(round)) %>% 
+ramet_density_heatmap <- function(yr, flt, transects) {
+  tmp = ramet %>%
+    mutate(`Nectar Plant Species` = fct_recode(`Nectar Plant Species`,
+                                               smartweed = "swamp smartweed",
+                                               smartweed = "pennsylvania smartweed",
+                                              `culvers root` = "culver's root",
+                                              `shepherds purse` = "shepherd's purse",
+                                              `yellow sweet clover` = "yellow sweetclover"),
+           year = as.character(year),
+           round = as.factor(round)) %>% 
+    
+    filter(transectID %in% transects, year == yr) %>%
   
-  filter(transectID %in% NCIG_sites, year == yr) %>%
+    left_join(subset(ISUmonarch::survey, year==yr) %>% 
+                mutate(round = as.factor(round)) %>%
+                select(transectID, length, round), by=c("transectID", "round")) %>%
+    
+    group_by(`Nectar Plant Species`, transectID, round) %>%
+    summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+    complete(transectID, round, fill = list(density = 0)) %>%
   
-  left_join(subset(ISUmonarch::survey, year==yr) %>% 
-              mutate(round = as.factor(round)) %>%
-              select(transectID, length, round), by=c("transectID", "round")) %>%
+    group_by(`Nectar Plant Species`, transectID) %>%
+    summarize(density = mean(density, na.rm=TRUE)) %>%
   
-  group_by(`Nectar Plant Species`, transectID, round) %>%
-  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
-  complete(transectID, round, fill = list(density = 0)) %>%
+    complete(transectID = transects) %>%
+    ungroup() %>% 
+    select(`Nectar Plant Species`, transectID, density) %>%
+    replace(.==0, NA) %>%
+    tidyr::spread(transectID, density, fill=NA) %>%
+    arrange(`Nectar Plant Species`) %>% 
   
-  group_by(`Nectar Plant Species`, transectID) %>%
-  summarize(density = mean(density, na.rm=TRUE)) %>%
+    filter(`Nectar Plant Species` %in% flt) %>%
   
-  complete(transectID = NCIG_sites) %>%
-  ungroup() %>% 
-  select(`Nectar Plant Species`, transectID, density) %>%
-  replace(.==0, NA) %>%
-  tidyr::spread(transectID, density, fill=NA) %>%
-  arrange(`Nectar Plant Species`) %>% 
+    gather(variable, value, -`Nectar Plant Species`) %>%
   
-  filter(`Nectar Plant Species` %in% flt) %>%
+    mutate(presence = ifelse(is.na(value), 0, 1))
+    
+    
+    tran.order = tmp %>% group_by(variable) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(desc(avg.density)) %>% select(variable) %>% pull(variable)
   
-  gather(variable, value, -`Nectar Plant Species`) %>%
+  # species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
   
-  ggplot(., aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
+  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+
+  tmp$variable <- factor(tmp$variable, levels = tran.order)
+  tmp$`Nectar Plant Species` <- factor(tmp$`Nectar Plant Species`, levels = species.order)
+  
+  ggplot(tmp, aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
   geom_tile(aes(fill = value), color="grey") + 
   theme_bw() + labs(x="", y="", fill="Log(Density)") +
   scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+  scale_x_discrete(position = "top") +
+  theme(axis.text.x.top = element_text(vjust = 0.5))
 }
 ```
 
-```{r ramet_heatmap, warning=FALSE, message=FALSE, fig.height=7, fig.width=9}
-# ramet_density_heatmap(yr = 2016, flt = unique(ramet$`Nectar Plant Species`))
-ramet_density_heatmap(yr = 2017, flt = unique(ramet$`Nectar Plant Species`))
-ramet_density_heatmap(yr = 2018, flt = unique(ramet$`Nectar Plant Species`))
+
+```{r ramet_heatmap_17, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
+ramet_density_heatmap(yr=2017, flt=ramet_species, transects=sites)
 ```
 
 
+```{r ramet_heatmap_18, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+ramet_density_heatmap(yr=2018, flt=ramet_species, transects=sites18)
+```
 
+
+```{r milkweed_heatmap_17, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
+ramet_density_heatmap(yr=2017, flt=milkweed_species, transects=milkweed_sites)
+```
+
+
+```{r milkweed_heatmap_18, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+ramet_density_heatmap(yr=2018, flt=milkweed_species, transects=milkweed_sites)
+```
 
