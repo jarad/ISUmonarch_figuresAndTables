@@ -49,25 +49,10 @@ NCIG_sites = unique(transect$transectID)
 
 Table \ref{t:nectar2016} and \ref{t:nectar2017} provide mean count of nectar plant species averaged across all 
 data collection events. 
-Table \ref{t:ramet2017} provides mean count of milkweed ramets.
 Values in table represent the specific counting unit for each species, not necessarily a whole plant.
 Table \ref{t:density2016} and \ref{t:density2017} provide nectar plant species density (per 100m2) averaged across all data collection events. 
-Table \ref{t:density2017ramet} provides mean density of milkweed ramets.
-Values in table represent the specific counting unit for each species, not necessarily a whole plant.
 
-Table \ref{t:daubenmire} provides average land cover percentage averaged across 
-all data collection events.
 
-Table \ref{t:robel} provides average amount of vegetation across all data 
-collection events.
-
-Table \ref{t:monarch} provides total number of monarchs sighted anywhere around 
-site during entire time at site, number of monarchs sighted during a survey 
-period, number of milkweed ramets (an upper limit of 20 per round per site, 
-although the same milkweed may have been surveyed in different rounds), 
-number of monarch eggs counted on milkweed plants (if no milkweed present, 
-no monarch eggs present, number of monarch larvae (caterpillars) counted on 
-milkweed plants (if no milkweed present, no larvae present).
 
 <!-- Table \ref{t:environment} provides a binary response of whether there were any  -->
 <!-- flowering plants or milkweed present in the area around the site during any  -->
@@ -181,65 +166,49 @@ nectar_density_table(yr = 2018, flt = unique(nectar$`Nectar Plant Species`),
 
 
 ```{r nectar_density_heatmap}
-NCIG_sites = unique(transect$transectID)
-
-nectar_density_heatmap <- function(yr, flt) {
-nectar %>%
-  mutate(`Nectar Plant Species` = 
-           fct_recode(`Nectar Plant Species`,
-                      smartweed = "swamp smartweed",
-                      smartweed = "pennsylvania smartweed",
-                      `culvers root` = "culver's root",
-                      `shepherds purse` = "shepherd's purse",
-                      `yellow sweet clover` = "yellow sweetclover"),
-         year = as.character(year),
-         round = as.factor(round)) %>% 
-  
-  filter(transectID %in% NCIG_sites, year == yr) %>%
-  
-  left_join(subset(ISUmonarch::survey, year==yr) %>% 
-              mutate(round = as.factor(round)) %>%
-              select(transectID, length, round), by=c("transectID", "round")) %>%
-  
-  group_by(`Nectar Plant Species`, transectID, round) %>%
-  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
-  complete(transectID, round, fill = list(density = 0)) %>%
-  
-  group_by(`Nectar Plant Species`, transectID) %>%
-  summarize(density = mean(density, na.rm=TRUE)) %>%
-  
-  complete(transectID = NCIG_sites) %>%
-  ungroup() %>% 
-  select(`Nectar Plant Species`, transectID, density) %>%
-  replace(.==0, NA) %>%
-  tidyr::spread(transectID, density, fill=NA) %>%
-  arrange(`Nectar Plant Species`) %>% 
-  
-  filter(`Nectar Plant Species` %in% flt) %>%
-  
-  gather(variable, value, -`Nectar Plant Species`) %>%
-  
-  ggplot(., aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
-  geom_tile(aes(fill = value), color="grey") + 
-  theme_bw() + labs(x="", y="", fill="Log(Density)") +
-  scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-}
+# nectar_density_heatmap <- function(yr, flt) {
+# nectar %>%
+#   mutate(`Nectar Plant Species` = 
+#            fct_recode(`Nectar Plant Species`,
+#                       smartweed = "swamp smartweed",
+#                       smartweed = "pennsylvania smartweed",
+#                       `culvers root` = "culver's root",
+#                       `shepherds purse` = "shepherd's purse",
+#                       `yellow sweet clover` = "yellow sweetclover"),
+#          year = as.character(year),
+#          round = as.factor(round)) %>% 
+#   
+#   filter(transectID %in% NCIG_sites, year == yr) %>%
+#   
+#   left_join(subset(ISUmonarch::survey, year==yr) %>% 
+#               mutate(round = as.factor(round)) %>%
+#               select(transectID, length, round), by=c("transectID", "round")) %>%
+#   
+#   group_by(`Nectar Plant Species`, transectID, round) %>%
+#   summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+#   complete(transectID, round, fill = list(density = 0)) %>%
+#   
+#   group_by(`Nectar Plant Species`, transectID) %>%
+#   summarize(density = mean(density, na.rm=TRUE)) %>%
+#   
+#   complete(transectID = NCIG_sites) %>%
+#   ungroup() %>% 
+#   select(`Nectar Plant Species`, transectID, density) %>%
+#   replace(.==0, NA) %>%
+#   tidyr::spread(transectID, density, fill=NA) %>%
+#   arrange(`Nectar Plant Species`) %>% 
+#   
+#   filter(`Nectar Plant Species` %in% flt) %>%
+#   
+#   gather(variable, value, -`Nectar Plant Species`) %>%
+#   
+#   ggplot(., aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
+#   geom_tile(aes(fill = value), color="grey") + 
+#   theme_bw() + labs(x="", y="", fill="Log(Density)") +
+#   scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+# }
 ```
-
-<!-- Here are some heatmaps which give us a visual display of our data. -->
-<!-- \newpage -->
-<!-- ```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap=""} -->
-<!-- nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`)) -->
-<!-- ``` -->
-<!-- ```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
-<!-- nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`)) -->
-<!-- ``` -->
-<!-- ```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9} -->
-<!-- nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`)) -->
-<!-- ``` -->
-
-
 
 
 ```{r nectar_density_heatmap2}
@@ -253,7 +222,7 @@ tmp=nectar %>%
   
   left_join(species[,c("common_name", "planted_non_planted")], by=c("Nectar Plant Species"="common_name")) %>%
     
-  filter(transectID %in% NCIG_sites, year == yr, planted_non_planted == plnt) %>%
+  filter(transectID %in% NCIG_sites, year %in% yr, planted_non_planted %in% plnt) %>%
   
   left_join(subset(ISUmonarch::survey, year==yr) %>% 
               mutate(round = as.factor(round)) %>%
@@ -293,25 +262,42 @@ tmp=nectar %>%
   theme_bw() + labs(x="", y="", fill="Log(Density)") +
   scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
-  scale_x_discrete(position = "top") 
+  scale_x_discrete(position = "top") +
+  theme(axis.text.x.top = element_text(vjust = 0.5))
 }
 ```
 
 Here are some heatmaps for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence.
-\newpage
 
 
-```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
+```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
+nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted", "non planted"))
+```
+
+
+```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
+nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted", "non planted"))
+```
+
+
+```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2018."}
+nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted", "non planted"))
+```
+
+
+
+
+```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
 nectar_density_heatmap2(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
+```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=6, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
 nectar_density_heatmap2(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
 
-```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=7, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
 nectar_density_heatmap2(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
 ```
 
