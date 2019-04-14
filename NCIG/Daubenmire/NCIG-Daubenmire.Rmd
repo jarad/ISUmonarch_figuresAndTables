@@ -112,7 +112,7 @@ rbind(daubenmire_site, daubenmire_total) %>%
 daubenmire_average %>% 
   filter(!(class %in% c("bare_ground", "leaf_litter"))) %>%
   left_join(transect, by=c("transectID")) %>%
-  mutate(year  = factor(year, levels=paste0(2016:2018)),
+  mutate(year  = factor(year, levels=paste0(min(year):max(year))),
          class = gsub("_", " ", class)) %>%
   ggplot(data=.) + 
     geom_point(aes(x=year, y=mean_percentage, color=transectID)) +
@@ -130,7 +130,7 @@ daubenmire_average %>%
 daubenmire_average %>% 
   filter((class %in% c("bare_ground", "leaf_litter"))) %>%
   left_join(transect, by=c("transectID")) %>%
-  mutate(year  = factor(year, levels=paste0(2016:2018)),
+  mutate(year  = factor(year, levels=paste0(min(year):max(year))),
          class = gsub("_", " ", class)) %>%
   ggplot(data=.) + 
     geom_point(aes(x=year, y=mean_percentage, color=transectID)) +
@@ -154,7 +154,7 @@ litter %>%
   summarize(mean_depth = round(mean(depth),1)) %>%
   ungroup() %>% 
   left_join(transect, by=c("transectID")) %>%
-  mutate(year  = factor(year, levels=paste0(2016:2018))) %>%
+  mutate(year  = factor(year, levels=paste0(min(year):max(year)))) %>%
   ggplot(data=.) + 
     geom_point(aes(x=year, y=mean_depth, color=transectID)) +
     geom_line( aes(x=year, y=mean_depth, color=transectID, group=transectID)) +
