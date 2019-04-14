@@ -1,0 +1,86 @@
+---
+title: "ISU Monarch Data Summary for NCIG"
+author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{rotating}
+  - \usepackage{caption} 
+  - \captionsetup[table]{skip=10pt}
+output: 
+  pdf_document:
+    fig_caption: TRUE
+---
+
+```{r setup, purl=FALSE, echo=FALSE}
+library("knitr")
+opts_chunk$set(echo    = FALSE, 
+               results = 'asis',
+               message = FALSE)
+```
+
+```{r packages}
+suppressWarnings(library("tidyverse"))
+library("ISUmonarch")
+library("xtable")
+options(xtable.comment = FALSE)
+```
+
+\setlength{\tabcolsep}{3pt}
+
+
+```{r sites}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
+```
+
+
+Table \ref{t:robel} provides average amount of vegetation across all data 
+collection events.
+
+
+ <!-- Robel -->
+
+```{r robel_average}
+robel_average = robel %>%
+  filter(transectID %in% NCIG_sites) %>%
+  group_by(year, round, transectID) %>%
+  summarize(mean_count = mean(count)) %>%
+  group_by(year, transectID) %>%
+  summarize(average = mean(mean_count) %>% round(1)) 
+
+robel_average %>%
+  
+  tidyr::spread(year, average, fill='na') %>%
+  
+  xtable(digits = 0,
+         align = "ll|rrr",
+         caption="Vegetation density using Robel measurements averaged across all rounds",
+         label = "t:robel") %>%
+  print(include.rownames = FALSE,
+        caption.placement = "top",
+          floating.environment = "sidewaystable") 
+```
+
+\newpage
+
+<!-- Plots of summary stats  -->
+
+```{r robel_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the average amount of vegetation by year and is faceted by grant. The colors correspond to the different trasects. \\label{fig:robel_plot_1}"}
+robel_average %>% 
+  left_join(transect, by=c("transectID")) %>%
+  ungroup() %>%
+  mutate(year = factor(year, levels=paste0(min(year):max(year)))) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=average, color=transectID)) +
+    geom_line( aes(x=year, y=average, color=transectID, group=transectID)) +
+    # facet_wrap(~class, scales="free_y") +
+    facet_grid(grant~.) +
+    theme_bw() + 
+    labs(x="Year", y="Average", color="Transect")
+
+```
+
+
+
+
+
