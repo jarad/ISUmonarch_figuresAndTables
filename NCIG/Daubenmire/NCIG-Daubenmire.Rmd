@@ -1,0 +1,184 @@
+---
+title: "ISU Monarch Data Summary for NCIG"
+author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{rotating}
+  - \usepackage{caption} 
+  - \captionsetup[table]{skip=10pt}
+output: 
+  pdf_document:
+    fig_caption: TRUE
+---
+
+```{r setup, purl=FALSE, echo=FALSE}
+library("knitr")
+opts_chunk$set(echo    = FALSE, 
+               results = 'asis',
+               message = FALSE)
+```
+
+```{r packages}
+suppressWarnings(library("tidyverse"))
+library("ISUmonarch")
+library("xtable")
+options(xtable.comment = FALSE)
+```
+
+\setlength{\tabcolsep}{3pt}
+
+
+```{r sites}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
+```
+
+
+Table \ref{t:daubenmire} provides average land cover percentage averaged across 
+all data collection events.
+
+
+ <!-- Daubenmire -->
+
+```{r daubenmire}
+daubenmire_average <- cover %>%
+  filter(transectID %in% NCIG_sites) %>% 
+  mutate(class = factor(class,
+                        levels = c("csg",
+                                   "wsg",
+                                   "forbs",
+                                   "milkweed",
+                                   "woody_species",
+                                   "bare_ground",
+                                   "leaf_litter")),
+         class = fct_recode(class, 
+                            "cool season grass" = "csg",
+                            "warm season grass" = "wsg")) %>%
+  
+  filter(!is.na(class)) %>%
+  
+  group_by(class, transectID, year) %>%
+  summarize(mean_percentage = round(mean(percentage),1)) %>%
+  ungroup()
+
+daubenmire_site <- daubenmire_average %>%
+  
+  # Calculate year-over-year % change
+  tidyr::spread(year, mean_percentage, fill=NA) %>%
+
+  tidyr::gather(tmp, value, -class, -transectID) %>%
+  arrange(transectID, class, tmp) %>%
+  mutate(column = factor(paste(class, tmp, sep="@"),
+                         levels = unique(paste(class, tmp, sep="@")))) %>%
+  select(transectID, column, value) %>%
+  tidyr::spread(column, value, fill=NA) 
+
+# Fix row names
+nc <- ncol(daubenmire_site)
+tmp <- data.frame(nms = names(daubenmire_site)[-1]) %>%
+  tidyr::separate(nms, into=c("row1", "row2"), sep="@")
+names(daubenmire_site)[-1] <- tmp$row2
+new_row <- paste(" & \\multicolumn{3}{c|}{",unique(tmp$row1),"}", 
+                 collapse="")
+new_row <- gsub("_", " ", new_row)
+new_row <- paste(new_row, "\\\\", collapse=" ")
+  
+
+daubenmire_total <- cbind(data.frame(transectID="Mean"),
+                          colMeans(daubenmire_site[,-1], na.rm=TRUE) %>% t() %>% as.data.frame)
+
+
+# Create table
+rbind(daubenmire_site, daubenmire_total) %>%
+  xtable(digits = 0,
+         align = paste("rr|",paste(rep("rrr|",floor(nc/3)),collapse=""),sep="",collapse=""),
+         caption="Daubenmire: average land cover \\% across all rounds",
+         label = "t:daubenmire") %>%
+  print(include.rownames = FALSE, 
+        NA.string="na",
+        add.to.row = list(pos = list(-1), 
+                          command = new_row),
+        caption.placement = "top",
+          size="\\small",
+          floating.environment = "sidewaystable",
+        hline.after = c(-1,0,length(NCIG_sites))) 
+```
+
+\newpage
+
+<!-- Plots of summary stats  -->
+
+```{r daubenmire_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_1}"}
+daubenmire_average %>% 
+  filter(!(class %in% c("bare_ground", "leaf_litter"))) %>%
+  left_join(transect, by=c("transectID")) %>%
+  mutate(year  = factor(year, levels=paste0(2016:2018)),
+         class = gsub("_", " ", class)) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=mean_percentage, color=transectID)) +
+    geom_line( aes(x=year, y=mean_percentage, color=transectID, group=transectID)) +
+    # facet_wrap(~class, scales="free_y") +
+    facet_grid(grant~class) +
+    theme_bw() + 
+    labs(x="Year", y="Mean Percentage", color="Transect")
+
+```
+
+
+
+```{r daubenmire_plot_2, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_2}"}
+daubenmire_average %>% 
+  filter((class %in% c("bare_ground", "leaf_litter"))) %>%
+  left_join(transect, by=c("transectID")) %>%
+  mutate(year  = factor(year, levels=paste0(2016:2018)),
+         class = gsub("_", " ", class)) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=mean_percentage, color=transectID)) +
+    geom_line( aes(x=year, y=mean_percentage, color=transectID, group=transectID)) +
+    # facet_wrap(~class, scales="free_y") +
+    facet_grid(grant~class) +
+    theme_bw() + 
+    labs(x="Year", y="Mean Percentage", color="Transect")
+
+```
+
+
+
+```{r daubenmire_plot_3, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_3}"}
+litter %>%
+  filter(transectID %in% NCIG_sites) %>% 
+  filter(!is.na(depth)) %>%
+  mutate(depth = depth*(1/10)) %>%
+  
+  group_by(transectID, year) %>%
+  summarize(mean_depth = round(mean(depth),1)) %>%
+  ungroup() %>% 
+  left_join(transect, by=c("transectID")) %>%
+  mutate(year  = factor(year, levels=paste0(2016:2018))) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=mean_depth, color=transectID)) +
+    geom_line( aes(x=year, y=mean_depth, color=transectID, group=transectID)) +
+    # facet_wrap(~class, scales="free_y") +
+    theme_bw() + 
+    labs(x="Year", y="Mean Depth (cm)", color="Transect")
+
+```
+
+
+\newpage
+
+<!-- Averaged across sites  -->
+
+```{r daubenmire_average2, eval=FALSE}
+daubenmire_average %>% 
+  group_by(class) %>%
+  summarize(average = mean(mean_percentage)) %>% 
+  ungroup() %>% 
+  tidyr::spread(class, average) %>%
+  xtable(digits = 1,
+         caption="Daubenmire: average land cover \\% across all rounds and sites",
+         label = "t:daubenmire_average") %>%
+  print(include.rownames = FALSE,
+        caption.placement = "top",
+        rotate.colnames = TRUE) 
+```
