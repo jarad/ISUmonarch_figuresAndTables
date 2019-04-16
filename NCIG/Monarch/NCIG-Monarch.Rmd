@@ -1,0 +1,141 @@
+---
+title: "ISU Monarch Data Summary for NCIG"
+author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{rotating}
+  - \usepackage{caption} 
+  - \captionsetup[table]{skip=10pt}
+output: 
+  pdf_document:
+    fig_caption: TRUE
+---
+
+```{r setup, purl=FALSE, echo=FALSE}
+library("knitr")
+opts_chunk$set(echo    = FALSE, 
+               results = 'asis',
+               message = FALSE)
+```
+
+```{r packages}
+suppressWarnings(library("tidyverse"))
+library("ISUmonarch")
+library("xtable")
+options(xtable.comment = FALSE)
+```
+
+\setlength{\tabcolsep}{3pt}
+
+
+```{r sites}
+NCIG_sites = as.character(unique(transect$transectID))
+NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
+```
+
+
+Table \ref{t:monarch} provides total number of monarchs sighted anywhere around 
+site during entire time at site, number of monarchs sighted during a survey 
+period, number of milkweed ramets (an upper limit of 20 per round per site, 
+although the same milkweed may have been surveyed in different rounds), 
+number of monarch eggs counted on milkweed plants (if no milkweed present, 
+no monarch eggs present, number of monarch larvae (caterpillars) counted on 
+milkweed plants (if no milkweed present, no larvae present).
+
+
+<!-- Monarch -->
+
+```{r monarch, warning=FALSE}
+monarch_summary <- monarch %>% 
+  filter(transectID %in% NCIG_sites) %>%
+  
+  mutate(group = "survey",
+         group = ifelse(grepl("instar",distance),                 "larvae", group),
+         group = ifelse(grepl("butterfly_[0-9]instar",distance),  "butterfly_larvae", group),
+         group = ifelse(grepl("common_[0-9]instar",distance),     "common_larvae", group),
+         group = ifelse(grepl("swamp_[0-9]instar",distance),      "swamp_larvae", group),
+         group = ifelse(distance == "stems",                      "ramets" , group),
+         group = ifelse(grepl("ramet", distance),                 "ramets" , group),
+         group = ifelse(grepl("butterfly_ramet",distance),        "butterfly_ramets", group),
+         group = ifelse(grepl("common_ramet",distance),           "common_ramets", group),
+         group = ifelse(grepl("swamp_ramet",distance),            "swamp_ramets", group),
+         group = ifelse(grepl("eggs", distance),                  "eggs"  , group),
+         group = ifelse(grepl("butterfly_eggs",distance),         "butterfly_eggs", group),
+         group = ifelse(grepl("common_eggs",distance),            "common_eggs", group),
+         group = ifelse(grepl("swamp_eggs",distance),             "swamp_eggs", group),
+         group = ifelse(distance == "extra_monarchs",             "extra",  group)) %>%
+  
+  select(transectID, year, group, count) %>%
+  group_by(transectID, year, group) %>%
+  summarize(count = sum(count)) %>%
+  tidyr::spread(group, count, fill=0) %>%
+  mutate(Total  = survey + extra) %>%
+  ungroup() %>%
+  magrittr::set_colnames(tools::toTitleCase(gsub("_", " ", colnames(.)))) %>%
+  select(-Extra) %>%
+  # select(year, transectID, Total, Survey, Ramets, Eggs, Larvae) %>%
+  
+  tidyr::gather(Monarch, count, -Year, -transectID) %>%
+  tidyr::spread(transectID, count, fill = NA) %>%
+  
+  mutate(Monarch = factor(Monarch, 
+                          levels = c("Total","Survey",
+                                     "Ramets","Butterfly Ramets","Common Ramets","Swamp Ramets",
+                                     "Eggs","Butterfly Eggs","Common Eggs","Swamp Eggs",
+                                     "Larvae","Butterfly Larvae","Common Larvae","Swamp Larvae"
+                                     ))) %>%
+  
+  arrange(Monarch,Year)
+  
+monarch_summary %>%
+  xtable(digits = 0,
+         caption="Monarch adults (total and during survey), milkweed ramets, monarch eggs on milkweed, and monarch larvae on milkweed. Note ramets, eggs, and larvae were collected differently for 2016.",
+         label = "t:monarch") %>%
+  print(include.rownames = FALSE, NA.string="-",
+        caption.placement = "top",
+        size="\\small",
+        floating.environment = "sidewaystable",
+        hline.after = c(-1,seq(from=0, to=(length(unique(monarch_summary$year))*5), by=3))) 
+```
+
+
+
+
+
+
+```{r monarch_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the total number of monarchs sighted anywhere around the site during entire time at site. The colors correspond to the different trasects. \\label{fig:monarch_plot_1}"}
+monarch %>% 
+  filter(transectID %in% NCIG_sites) %>%
+  
+  mutate(group = "survey",
+         group = ifelse(grepl("instar",distance),     "instar", group),
+         group = ifelse(distance == "stems",          "ramets" , group),
+         group = ifelse(grepl("ramet", distance),     "ramets" , group),
+         group = ifelse(grepl("eggs", distance),           "eggs"  , group),
+         group = ifelse(distance == "extra_monarchs", "extra",  group)) %>%
+  
+  select(transectID, year, group, count) %>%
+  group_by(transectID, year, group) %>%
+  summarize(count = sum(count)) %>%
+  tidyr::spread(group, count, fill=0) %>%
+  mutate(Total  = survey + extra) %>%
+  ungroup() %>%
+  rename(Survey = survey,
+         Ramets = ramets,
+         Eggs = eggs,
+         Larvae = instar) %>%
+  select(year, transectID, Total, Survey, Ramets, Eggs, Larvae) %>%
+  
+  tidyr::gather(Monarch, count, -year, -transectID) %>%
+  left_join(transect, by=c("transectID")) %>%
+  mutate(year  = factor(year, levels=paste0(min(year):max(year)))) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=count, color=transectID)) +
+    geom_line( aes(x=year, y=count, color=transectID, group=transectID)) +
+    facet_grid(grant~Monarch, scales="free_y") + 
+    theme_bw() + 
+    labs(x="Year", y="Count", color="Transect")
+```
+
+
+
