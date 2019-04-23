@@ -144,7 +144,7 @@ daubenmire_average %>%
 
 
 
-```{r daubenmire_plot_3, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_3}"}
+```{r daubenmire_plot_3, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different transects. \\label{fig:daub_plot_3}"}
 litter %>%
   filter(transectID %in% NCIG_sites) %>% 
   filter(!is.na(depth)) %>%
@@ -165,7 +165,7 @@ litter %>%
 ```
 
 
-\newpage
+<!-- \newpage -->
 
 <!-- Averaged across sites  -->
 
@@ -182,3 +182,91 @@ daubenmire_average %>%
         caption.placement = "top",
         rotate.colnames = TRUE) 
 ```
+
+
+<!-- Milkweed  -->
+
+```{r milkweed_daubenmire, eval=TRUE}
+milkweed_average <- milkweed %>%
+  filter(transectID %in% NCIG_sites) %>% 
+  mutate(milkweed_species = fct_recode(milkweed_species, 
+                            "common ramet" = "common_ramet",
+                            "swamp ramet" = "swamp_ramet",
+                            "butterfly ramet" = "butterfly_ramet")) %>%
+  
+  filter(!is.na(milkweed_species)) %>%
+  
+  group_by(milkweed_species, transectID, year) %>%
+  summarize(mean_ramet = round(mean(ramets),1)) %>%
+  ungroup()
+
+milkweed_site <- milkweed_average %>%
+  
+  # Calculate year-over-year % change
+  tidyr::spread(year, mean_ramet, fill=NA) %>%
+
+  tidyr::gather(tmp, value, -milkweed_species, -transectID) %>%
+  arrange(transectID, milkweed_species, tmp) %>%
+  mutate(column = factor(paste(milkweed_species, tmp, sep="@"),
+                         levels = unique(paste(milkweed_species, tmp, sep="@")))) %>%
+  select(transectID, column, value) %>%
+  tidyr::spread(column, value, fill=NA) 
+
+# Fix row names
+nc <- ncol(milkweed_site)
+tmp <- data.frame(nms = names(milkweed_site)[-1]) %>%
+  tidyr::separate(nms, into=c("row1", "row2"), sep="@")
+names(milkweed_site)[-1] <- tmp$row2
+new_row <- paste(" & \\multicolumn{2}{c|}{",unique(tmp$row1),"}", 
+                 collapse="")
+new_row <- gsub("_", " ", new_row)
+new_row <- paste(new_row, "\\\\", collapse=" ")
+  
+
+milkweed_total <- cbind(data.frame(transectID="Mean"),
+                          colMeans(milkweed_site[,-1], na.rm=TRUE) %>% t() %>% as.data.frame)
+
+
+# Create table
+rbind(milkweed_site, milkweed_total) %>%
+  xtable(digits = 1,
+         align = paste("rr|",paste(rep("rrr|",floor(nc/3)),collapse=""),sep="",collapse=""),
+         caption="Daubenmire Milkweed: average ramet stems across all rounds",
+         label = "t:daubenmire_milkweed") %>%
+  print(include.rownames = FALSE, 
+        NA.string="na",
+        add.to.row = list(pos = list(-1), 
+                          command = new_row),
+        caption.placement = "top",
+          size="\\small",
+          floating.environment = "sidewaystable",
+        hline.after = c(-1,0,length(NCIG_sites))) 
+
+```
+
+
+```{r daubenmire_milkweed_plot, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean ramets by year and is faceted by species. The colors correspond to the different transects. \\label{fig:daub_plot_4}"}
+milkweed %>%
+  filter(transectID %in% NCIG_sites) %>% 
+  mutate(milkweed_species = fct_recode(milkweed_species, 
+                            "common ramet" = "common_ramet",
+                            "swamp ramet" = "swamp_ramet",
+                            "butterfly ramet" = "butterfly_ramet")) %>%
+  
+  filter(!is.na(milkweed_species)) %>%
+  
+  group_by(milkweed_species, transectID, year) %>%
+  summarize(mean_ramet = round(mean(ramets),1)) %>%
+  ungroup() %>% 
+  left_join(transect, by=c("transectID")) %>%
+  mutate(year  = factor(year, levels=paste0(min(year):max(year)))) %>%
+  ggplot(data=.) + 
+    geom_point(aes(x=year, y=mean_ramet, color=transectID)) +
+    geom_line( aes(x=year, y=mean_ramet, color=transectID, group=transectID)) +
+    facet_wrap(~milkweed_species, scales="free_y") +
+    theme_bw() + 
+    labs(x="Year", y="Mean Ramets", color="Transect")
+
+```
+
+
