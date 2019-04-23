@@ -49,34 +49,34 @@ milkweed plants (if no milkweed present, no larvae present).
 monarch_summary <- monarch %>% 
   filter(transectID %in% NCIG_sites) %>%
   
-  mutate(group = "survey",
+  mutate(group = "adults_survey",
          group = ifelse(grepl("instar",distance),                 "larvae", group),
-         group = ifelse(grepl("butterfly_[0-9]instar",distance),  "butterfly_larvae", group),
-         group = ifelse(grepl("common_[0-9]instar",distance),     "common_larvae", group),
-         group = ifelse(grepl("swamp_[0-9]instar",distance),      "swamp_larvae", group),
+         group = ifelse(grepl("butterfly_[0-9]instar",distance),  "larvae_butterfly", group),
+         group = ifelse(grepl("common_[0-9]instar",distance),     "larvae_common", group),
+         group = ifelse(grepl("swamp_[0-9]instar",distance),      "larvae_swamp", group),
          group = ifelse(distance == "stems",                      "ramets" , group),
          group = ifelse(grepl("ramet", distance),                 "ramets" , group),
-         group = ifelse(grepl("butterfly_ramet",distance),        "butterfly_ramets", group),
-         group = ifelse(grepl("common_ramet",distance),           "common_ramets", group),
-         group = ifelse(grepl("swamp_ramet",distance),            "swamp_ramets", group),
+         group = ifelse(grepl("butterfly_ramet",distance),        "ramets_butterfly", group),
+         group = ifelse(grepl("common_ramet",distance),           "ramets_common", group),
+         group = ifelse(grepl("swamp_ramet",distance),            "ramets_swamp", group),
          group = ifelse(grepl("eggs", distance),                  "eggs"  , group),
-         group = ifelse(grepl("butterfly_eggs",distance),         "butterfly_eggs", group),
-         group = ifelse(grepl("common_eggs",distance),            "common_eggs", group),
-         group = ifelse(grepl("swamp_eggs",distance),             "swamp_eggs", group),
+         group = ifelse(grepl("butterfly_eggs",distance),         "eggs_butterfly", group),
+         group = ifelse(grepl("common_eggs",distance),            "eggs_common", group),
+         group = ifelse(grepl("swamp_eggs",distance),             "eggs_swamp", group),
          group = ifelse(distance == "extra_monarchs",             "extra",  group)) %>%
   
   select(transectID, year, group, count) %>%
   group_by(transectID, year, group) %>%
   summarize(count = sum(count)) %>%
   tidyr::spread(group, count, fill=0) %>%
-  mutate(Total  = survey + extra) %>%
+  mutate(adults_total  = adults_survey + extra) %>%
   ungroup() %>%
   group_by(transectID, year) %>%
-  mutate(eggs   = butterfly_eggs + common_eggs + swamp_eggs,
-         larvae = butterfly_larvae + common_larvae + swamp_larvae,
-         ramets = butterfly_ramets + common_ramets + swamp_ramets) %>%
+  mutate(eggs   = eggs_butterfly + eggs_common + eggs_swamp,
+         larvae = larvae_butterfly + larvae_common + larvae_swamp,
+         ramets = ramets_butterfly + ramets_common + ramets_swamp) %>%
   ungroup() %>%
-  magrittr::set_colnames(tools::toTitleCase(gsub("_", " ", colnames(.)))) %>%
+  magrittr::set_colnames(tools::toTitleCase(gsub("_", ", ", colnames(.)))) %>%
   select(-Extra) %>%
   # select(year, transectID, Total, Survey, Ramets, Eggs, Larvae) %>%
   
@@ -84,10 +84,10 @@ monarch_summary <- monarch %>%
   tidyr::spread(transectID, count, fill = NA) %>%
   
   mutate(Monarch = factor(Monarch, 
-                          levels = c("Total","Survey",
-                                     "Ramets","Butterfly Ramets","Common Ramets","Swamp Ramets",
-                                     "Eggs","Butterfly Eggs","Common Eggs","Swamp Eggs",
-                                     "Larvae","Butterfly Larvae","Common Larvae","Swamp Larvae"
+                          levels = c("Adults, Total","Adults, Survey",
+                                     "Ramets","Ramets, Butterfly","Ramets, Common","Ramets, Swamp",
+                                     "Eggs","Eggs, Butterfly","Eggs, Common","Eggs, Swamp",
+                                     "Larvae","Larvae, Butterfly","Larvae, Common","Larvae, Swamp"
                                      ))) %>%
   
   arrange(Monarch,Year)
