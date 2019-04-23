@@ -71,6 +71,11 @@ monarch_summary <- monarch %>%
   tidyr::spread(group, count, fill=0) %>%
   mutate(Total  = survey + extra) %>%
   ungroup() %>%
+  group_by(transectID, year) %>%
+  mutate(eggs   = butterfly_eggs + common_eggs + swamp_eggs,
+         larvae = butterfly_larvae + common_larvae + swamp_larvae,
+         ramets = butterfly_ramets + common_ramets + swamp_ramets) %>%
+  ungroup() %>%
   magrittr::set_colnames(tools::toTitleCase(gsub("_", " ", colnames(.)))) %>%
   select(-Extra) %>%
   # select(year, transectID, Total, Survey, Ramets, Eggs, Larvae) %>%
@@ -92,8 +97,10 @@ monarch_summary %>%
          caption="Monarch adults (total and during survey), milkweed ramets, monarch eggs on milkweed, and monarch larvae on milkweed. Note ramets, eggs, and larvae were collected differently for 2016.",
          label = "t:monarch") %>%
   print(include.rownames = FALSE, NA.string="-",
+        rotate.colnames = TRUE,
         caption.placement = "top",
-        size="\\small",
+        scalebox = 0.9,
+        # size="\\tiny",
         floating.environment = "sidewaystable",
         hline.after = c(-1,seq(from=0, to=(length(unique(monarch_summary$year))*5), by=3))) 
 ```
