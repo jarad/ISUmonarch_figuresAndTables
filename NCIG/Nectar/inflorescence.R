@@ -25,7 +25,7 @@ ggplot(d, aes(ymd, inflorescence)) +
 
 # Richness
 
-ggplot(d, aes(yearround, richness)) + 
+ggplot(d, aes(ymd, richness)) + 
   geom_point() +
   facet_wrap(~siteID) +
   theme_bw() + 
