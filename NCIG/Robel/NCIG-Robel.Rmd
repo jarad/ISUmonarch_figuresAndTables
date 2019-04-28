@@ -50,15 +50,17 @@ robel_average = robel %>%
 
 robel_average %>%
   
-  tidyr::spread(year, average, fill='na') %>%
+  tidyr::spread(year, average, fill=NA) %>%
   
-  xtable(digits = 0,
+  xtable(.,
+         digits = 1, #c(0, 0, rep(1, length(unique(robel$year)))),
          align = "ll|rrr",
          caption="Vegetation density using Robel measurements averaged across all rounds",
          label = "t:robel") %>%
   print(include.rownames = FALSE,
-        caption.placement = "top",
-          floating.environment = "sidewaystable") 
+        NA.string="-",
+        caption.placement = "top")#,
+          # floating.environment = "sidewaystable") 
 ```
 
 \newpage
