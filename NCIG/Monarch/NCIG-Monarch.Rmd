@@ -68,13 +68,13 @@ monarch_summary <- monarch %>%
   select(transectID, year, group, count) %>%
   group_by(transectID, year, group) %>%
   summarize(count = sum(count)) %>%
-  tidyr::spread(group, count, fill=0) %>%
-  mutate(adults_total  = adults_survey + extra) %>%
+  tidyr::spread(group, count, fill=NA) %>%
+  mutate(adults_total  = adults_survey + extra) %>% 
   ungroup() %>%
-  group_by(transectID, year) %>%
-  mutate(eggs   = eggs_butterfly + eggs_common + eggs_swamp,
-         larvae = larvae_butterfly + larvae_common + larvae_swamp,
-         ramets = ramets_butterfly + ramets_common + ramets_swamp) %>%
+  group_by(transectID, year) %>% # Creating summary columns
+  mutate(eggs   = rowSums(cbind(eggs,eggs_butterfly,eggs_common,eggs_swamp), na.rm=TRUE),
+         larvae = rowSums(cbind(larvae,larvae_butterfly,larvae_common,larvae_swamp), na.rm=TRUE),
+         ramets = rowSums(cbind(ramets,ramets_butterfly,ramets_common,ramets_swamp), na.rm=TRUE)) %>%
   ungroup() %>%
   magrittr::set_colnames(tools::toTitleCase(gsub("_", ", ", colnames(.)))) %>%
   select(-Extra) %>%
@@ -90,8 +90,10 @@ monarch_summary <- monarch %>%
                                      "Larvae","Larvae, Butterfly","Larvae, Common","Larvae, Swamp"
                                      ))) %>%
   
-  arrange(Monarch,Year)
-  
+  arrange(Monarch,Year) 
+
+monarch_summary = monarch_summary[rowSums(is.na(monarch_summary[,-c(1,2)]))!=length(unique(NCIG_sites)),]
+
 monarch_summary %>%
   xtable(digits = 0,
          caption="Monarch adults (total and during survey), milkweed ramets, monarch eggs on milkweed, and monarch larvae on milkweed. Note ramets, eggs, and larvae were collected differently for 2016.",
