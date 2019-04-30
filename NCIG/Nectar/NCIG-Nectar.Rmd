@@ -28,28 +28,31 @@ options(xtable.comment = FALSE)
 \setlength{\tabcolsep}{3pt}
 
 
-```{r species}
+```{r species, warning=FALSE, message=FALSE}
 species = unique(nectar$`Nectar Plant Species`)
 species = species[order(species)]
-flt1 = species[1:floor(length(species)/2)]
-flt2 = species[-c(1:floor(length(species)/2))]
+species = species %>% data.frame(common_name=.) %>% 
+  left_join(ISUmonarch::species, by="common_name")
+
+native_species = species %>% filter(native_introduced_both=="native") %>% pull(common_name)
+intro_species = species %>% filter(native_introduced_both=="introduced") %>% pull(common_name)
+both_species = species %>% filter(native_introduced_both=="both") %>% pull(common_name)
+all_species = species %>% pull(common_name)
 ```
 
 
 
 ```{r sites}
-NCIG_transects = as.character(unique(transect$transectID))
-NCIG_transects = as.character(unique(NCIG_transects[!(NCIG_transects %in% c("tuth1a", "tuth2a", "tsie1a"))]))
-NCIG_transects = NCIG_transects[order(NCIG_transects)]
+every_transect = ISUmonarch::transect %>% 
+  filter(!(transectID %in% c("tuth1a", "tuth2a", "tsie1a"))) %>%
+  select(transectID, grant) %>%
+  arrange(transectID)
 
-
-
-chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE)) 
-splits = chunk(NCIG_transects, 3)
-
-transects1 = splits[[1]]
-transects2 = splits[[2]]
-transects3 = splits[[3]]
+ncig  = every_transect %>% filter(grant=="ncig") %>% pull(transectID) %>% as.character
+pork  = every_transect %>% filter(grant=="pork") %>% pull(transectID) %>% as.character
+iacig = every_transect %>% filter(grant=="iacig") %>% pull(transectID) %>% as.character
+soy   = every_transect %>% filter(grant=="soy") %>% pull(transectID) %>% as.character
+all_transects = every_transect %>% pull(transectID) %>% as.character
 ```
 
 
@@ -96,27 +99,166 @@ nectar_table <- function(yr, flt, transects, label) {
 ```
 
 ```{r nectar, warning=FALSE}
+# 2016 NCIG
 nectar_table(yr=2016, 
-             flt=species,
-             transects = transects1,
-             label = "nectar2016a")
+             flt=native_species,
+             transects = ncig,
+             label = "nectar2016_ncig_native")
 nectar_table(yr=2016, 
-             flt=species,
-             transects = transects2,
-             label = "nectar2016b")
+             flt=intro_species,
+             transects = ncig,
+             label = "nectar2016_ncig_intro")
 nectar_table(yr=2016, 
-             flt=species,
-             transects = transects3,
-             label = "nectar2016c")
-nectar_table(yr=2017, 
-             flt=unique(nectar$`Nectar Plant Species`), 
-             transects = NCIG_transects,
-             label = "nectar2017")
-nectar_table(yr=2018, 
-             flt=unique(nectar$`Nectar Plant Species`), 
-             transects = NCIG_transects,
-             label = "nectar2018")
+             flt=both_species,
+             transects = ncig,
+             label = "nectar2016_ncig_both")
+# 2016 Pork
+nectar_table(yr=2016, 
+             flt=native_species,
+             transects = pork,
+             label = "nectar2016_pork_native")
+nectar_table(yr=2016, 
+             flt=intro_species,
+             transects = pork,
+             label = "nectar2016_pork_intro")
+nectar_table(yr=2016, 
+             flt=both_species,
+             transects = pork,
+             label = "nectar2016_pork_both")
+# 2016 ICIG
+nectar_table(yr=2016, 
+             flt=native_species,
+             transects = iacig,
+             label = "nectar2016_iacig_native")
+nectar_table(yr=2016, 
+             flt=intro_species,
+             transects = iacig,
+             label = "nectar2016_iacig_intro")
+nectar_table(yr=2016, 
+             flt=both_species,
+             transects = iacig,
+             label = "nectar2016_iacig_both")
+# 2016 Soy
+nectar_table(yr=2016, 
+             flt=native_species,
+             transects = soy,
+             label = "nectar2016_soy_native")
+nectar_table(yr=2016, 
+             flt=intro_species,
+             transects = soy,
+             label = "nectar2016_soy_intro")
+nectar_table(yr=2016, 
+             flt=both_species,
+             transects = soy,
+             label = "nectar2016_soy_both")
 
+
+# 2017 NCIG
+nectar_table(yr=2017, 
+             flt=native_species,
+             transects = ncig,
+             label = "nectar2017_ncig_native")
+nectar_table(yr=2017, 
+             flt=intro_species,
+             transects = ncig,
+             label = "nectar2017_ncig_intro")
+nectar_table(yr=2017, 
+             flt=both_species,
+             transects = ncig,
+             label = "nectar2017_ncig_both")
+# 2017 Pork
+nectar_table(yr=2017, 
+             flt=native_species,
+             transects = pork,
+             label = "nectar2017_pork_native")
+nectar_table(yr=2017, 
+             flt=intro_species,
+             transects = pork,
+             label = "nectar2017_pork_intro")
+nectar_table(yr=2017, 
+             flt=both_species,
+             transects = pork,
+             label = "nectar2017_pork_both")
+# 2017 ICIG
+nectar_table(yr=2017, 
+             flt=native_species,
+             transects = iacig,
+             label = "nectar2017_iacig_native")
+nectar_table(yr=2017, 
+             flt=intro_species,
+             transects = iacig,
+             label = "nectar2017_iacig_intro")
+nectar_table(yr=2017, 
+             flt=both_species,
+             transects = iacig,
+             label = "nectar2017_iacig_both")
+# 2017 Soy
+nectar_table(yr=2017, 
+             flt=native_species,
+             transects = soy,
+             label = "nectar2017_soy_native")
+nectar_table(yr=2017, 
+             flt=intro_species,
+             transects = soy,
+             label = "nectar2017_soy_intro")
+nectar_table(yr=2017, 
+             flt=both_species,
+             transects = soy,
+             label = "nectar2017_soy_both")
+
+
+# 2018 NCIG
+nectar_table(yr=2018, 
+             flt=native_species,
+             transects = ncig,
+             label = "nectar2018_ncig_native")
+nectar_table(yr=2018, 
+             flt=intro_species,
+             transects = ncig,
+             label = "nectar2018_ncig_intro")
+nectar_table(yr=2018, 
+             flt=both_species,
+             transects = ncig,
+             label = "nectar2018_ncig_both")
+# 2018 Pork
+nectar_table(yr=2018, 
+             flt=native_species,
+             transects = pork,
+             label = "nectar2018_pork_native")
+nectar_table(yr=2018, 
+             flt=intro_species,
+             transects = pork,
+             label = "nectar2018_pork_intro")
+nectar_table(yr=2018, 
+             flt=both_species,
+             transects = pork,
+             label = "nectar2018_pork_both")
+# 2018 ICIG
+nectar_table(yr=2018, 
+             flt=native_species,
+             transects = iacig,
+             label = "nectar2018_iacig_native")
+nectar_table(yr=2018, 
+             flt=intro_species,
+             transects = iacig,
+             label = "nectar2018_iacig_intro")
+nectar_table(yr=2018, 
+             flt=both_species,
+             transects = iacig,
+             label = "nectar2018_iacig_both")
+# 2018 Soy
+nectar_table(yr=2018, 
+             flt=native_species,
+             transects = soy,
+             label = "nectar2018_soy_native")
+nectar_table(yr=2018, 
+             flt=intro_species,
+             transects = soy,
+             label = "nectar2018_soy_intro")
+nectar_table(yr=2018, 
+             flt=both_species,
+             transects = soy,
+             label = "nectar2018_soy_both")
 ```
 
 
@@ -175,18 +317,169 @@ nectar %>%
 ```
 
 ```{r nectar_density, warning=FALSE, message=FALSE}
-nectar_density_table(yr = 2016, 
-                     flt = unique(nectar$`Nectar Plant Species`),
-                     transects = NCIG_transects,
-                     label = "density2016")
-nectar_density_table(yr = 2017, 
-                     flt = unique(nectar$`Nectar Plant Species`),
-                     transects = NCIG_transects,
-                     label = "density2017")
-nectar_density_table(yr = 2018, 
-                     flt = unique(nectar$`Nectar Plant Species`),
-                     transects = NCIG_transects,
-                     label = "density2018")
+# 2016 NCIG
+nectar_density_table(yr=2016, 
+             flt=native_species,
+             transects = ncig,
+             label = "density2016_ncig_native")
+nectar_density_table(yr=2016, 
+             flt=intro_species,
+             transects = ncig,
+             label = "density2016_ncig_intro")
+nectar_density_table(yr=2016, 
+             flt=both_species,
+             transects = ncig,
+             label = "density2016_ncig_both")
+# 2016 Pork
+nectar_density_table(yr=2016, 
+             flt=native_species,
+             transects = pork,
+             label = "density2016_pork_native")
+nectar_density_table(yr=2016, 
+             flt=intro_species,
+             transects = pork,
+             label = "density2016_pork_intro")
+nectar_density_table(yr=2016, 
+             flt=both_species,
+             transects = pork,
+             label = "density2016_pork_both")
+# 2016 ICIG
+nectar_density_table(yr=2016, 
+             flt=native_species,
+             transects = iacig,
+             label = "density2016_iacig_native")
+nectar_density_table(yr=2016, 
+             flt=intro_species,
+             transects = iacig,
+             label = "density2016_iacig_intro")
+nectar_density_table(yr=2016, 
+             flt=both_species,
+             transects = iacig,
+             label = "density2016_iacig_both")
+# 2016 Soy
+nectar_density_table(yr=2016, 
+             flt=native_species,
+             transects = soy,
+             label = "density2016_soy_native")
+nectar_density_table(yr=2016, 
+             flt=intro_species,
+             transects = soy,
+             label = "density2016_soy_intro")
+nectar_density_table(yr=2016, 
+             flt=both_species,
+             transects = soy,
+             label = "density2016_soy_both")
+
+
+# 2017 NCIG
+nectar_density_table(yr=2017, 
+             flt=native_species,
+             transects = ncig,
+             label = "density2017_ncig_native")
+nectar_density_table(yr=2017, 
+             flt=intro_species,
+             transects = ncig,
+             label = "density2017_ncig_intro")
+nectar_density_table(yr=2017, 
+             flt=both_species,
+             transects = ncig,
+             label = "density2017_ncig_both")
+# 2017 Pork
+nectar_density_table(yr=2017, 
+             flt=native_species,
+             transects = pork,
+             label = "density2017_pork_native")
+nectar_density_table(yr=2017, 
+             flt=intro_species,
+             transects = pork,
+             label = "density2017_pork_intro")
+nectar_density_table(yr=2017, 
+             flt=both_species,
+             transects = pork,
+             label = "density2017_pork_both")
+# 2017 ICIG
+nectar_density_table(yr=2017, 
+             flt=native_species,
+             transects = iacig,
+             label = "density2017_iacig_native")
+nectar_density_table(yr=2017, 
+             flt=intro_species,
+             transects = iacig,
+             label = "density2017_iacig_intro")
+nectar_density_table(yr=2017, 
+             flt=both_species,
+             transects = iacig,
+             label = "density2017_iacig_both")
+# 2017 Soy
+nectar_density_table(yr=2017, 
+             flt=native_species,
+             transects = soy,
+             label = "density2017_soy_native")
+nectar_density_table(yr=2017, 
+             flt=intro_species,
+             transects = soy,
+             label = "density2017_soy_intro")
+nectar_density_table(yr=2017, 
+             flt=both_species,
+             transects = soy,
+             label = "density2017_soy_both")
+
+
+# 2018 NCIG
+nectar_density_table(yr=2018, 
+             flt=native_species,
+             transects = ncig,
+             label = "density2018_ncig_native")
+nectar_density_table(yr=2018, 
+             flt=intro_species,
+             transects = ncig,
+             label = "density2018_ncig_intro")
+nectar_density_table(yr=2018, 
+             flt=both_species,
+             transects = ncig,
+             label = "density2018_ncig_both")
+# 2018 Pork
+nectar_density_table(yr=2018, 
+             flt=native_species,
+             transects = pork,
+             label = "density2018_pork_native")
+nectar_density_table(yr=2018, 
+             flt=intro_species,
+             transects = pork,
+             label = "density2018_pork_intro")
+nectar_density_table(yr=2018, 
+             flt=both_species,
+             transects = pork,
+             label = "density2018_pork_both")
+# 2018 ICIG
+nectar_density_table(yr=2018, 
+             flt=native_species,
+             transects = iacig,
+             label = "density2018_iacig_native")
+nectar_density_table(yr=2018, 
+             flt=intro_species,
+             transects = iacig,
+             label = "density2018_iacig_intro")
+nectar_density_table(yr=2018, 
+             flt=both_species,
+             transects = iacig,
+             label = "density2018_iacig_both")
+# 2018 Soy
+nectar_density_table(yr=2018, 
+             flt=native_species,
+             transects = soy,
+             label = "density2018_soy_native")
+nectar_density_table(yr=2018, 
+             flt=intro_species,
+             transects = soy,
+             label = "density2018_soy_intro")
+nectar_density_table(yr=2018, 
+             flt=both_species,
+             transects = soy,
+             label = "density2018_soy_both")
+
+
+
 ```
 
 
@@ -249,26 +542,24 @@ Here are some heatmaps for density of species planted with transects on the colu
 
 ```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
 nectar_density_heatmap(yr = 2016, 
-                       flt = species, 
-                       transects = NCIG_transects, 
+                       flt = all_species, 
+                       transects = all_transects, 
                        plnt=c("planted", "non planted"))
 ```
 
 
 ```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
 nectar_density_heatmap(yr = 2017, 
-                       flt = species, 
-                       transects = NCIG_transects, 
+                       flt = all_species, 
+                       transects = all_transects, 
                        plnt=c("planted", "non planted"))
 ```
 
 
 ```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2018."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap(yr = 2018, 
-                       flt = species, 
-                       transects = NCIG_transects[!(NCIG_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
+                       flt = all_species, 
+                       transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
                        plnt=c("planted", "non planted"))
 ```
 
@@ -276,124 +567,55 @@ nectar_density_heatmap(yr = 2018,
 
 
 ```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap(yr = 2016, 
-                       flt = species, 
-                       transects = NCIG_transects,
+                       flt = all_species, 
+                       transects = all_transects,
                        plnt=c("planted"))
 ```
 
 
 ```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=6, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap(yr = 2017, 
-                       flt = species, 
-                       transects = NCIG_transects,
+                       flt = all_species, 
+                       transects = all_transects,
                        plnt=c("planted"))
 ```
 
 
 ```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=7, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap(yr = 2018,
-                       flt = species, 
-                       transects = NCIG_transects[!(NCIG_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
+                       flt = all_species, 
+                       transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
                        plnt=c("planted"))
 ```
 
 
 ```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap(yr = 2016, 
-                       flt = species, 
-                       transects = NCIG_transects,
+                       flt = all_species, 
+                       transects = all_transects,
                        plnt=c("non planted"))
 ```
 
 
 ```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
 nectar_density_heatmap(yr = 2017, 
-                       flt = species, 
-                       transects = NCIG_transects,
+                       flt = all_species, 
+                       transects = all_transects,
                        plnt=c("non planted"))
 ```
 
 
 ```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a", "tfis1a"))]))
 nectar_density_heatmap(yr = 2018, 
-                       flt = species, 
-                       transects = NCIG_transects[!(NCIG_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
+                       flt = all_species, 
+                       transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
                        plnt=c("non planted"))
 ```
 
 
 
 
-```{r nectar_binary_heatmap}
-# NCIG_sites = as.character(unique(transect$transectID))
-# NCIG_sites = as.character(unique(NCIG_sites[!(NCIG_sites %in% c("tuth1a", "tuth2a", "tsie1a"))]))
-
-nectar_binary_heatmap <- function(yr, flt, plnt="planted") {
-
-tmp=nectar %>%
-  mutate(year = as.character(year),
-         round = as.factor(round)) %>% 
-  
-  left_join(species[,c("common_name", "planted_non_planted")], by=c("Nectar Plant Species"="common_name")) %>%
-    
-  filter(transectID %in% NCIG_sites, year == yr, planted_non_planted == plnt) %>%
-  
-  left_join(subset(ISUmonarch::survey, year==yr) %>% 
-              mutate(round = as.factor(round)) %>%
-              select(transectID, length, round), by=c("transectID", "round")) %>%
-  
-  group_by(`Nectar Plant Species`, transectID, round) %>%
-  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
-  complete(transectID, round, fill = list(density = 0)) %>%
-  
-  group_by(`Nectar Plant Species`, transectID) %>%
-  summarize(density = mean(density, na.rm=TRUE)) %>%
-  
-  complete(transectID = NCIG_sites) %>%
-  ungroup() %>% 
-  select(`Nectar Plant Species`, transectID, density) %>%
-  replace(.==0, NA) %>%
-  tidyr::spread(transectID, density, fill=NA) %>%
-  arrange(`Nectar Plant Species`) %>% 
-  
-  filter(`Nectar Plant Species` %in% flt) %>%
-  
-  gather(variable, value, -`Nectar Plant Species`) %>%
-  
-  mutate(presence = ifelse(is.na(value), 0, 1)) %>%
-  
-  select(everything(), -value)
-  
-  tran.order = tmp %>% group_by(variable) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(desc(avg.density)) %>% select(variable) %>% pull(variable)
-  
-  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
-
-  tmp$variable <- factor(tmp$variable, levels = tran.order)
-  tmp$`Nectar Plant Species` <- factor(tmp$`Nectar Plant Species`, levels = species.order)
-  
-  ggplot(tmp, aes(x=variable, y=`Nectar Plant Species`, z= factor(presence))) + 
-  geom_tile(aes(fill =factor(presence)), color="grey") + 
-  theme_bw() + labs(x="", y="", fill="Presence") +
-  scale_colour_manual(values = c("white", "navy"),
-    aesthetics = c("colour", "fill")) + 
-  # scale_fill_gradient(na.value = 'white', low="navy", high="salmon") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
-  scale_x_discrete(position = "top") 
-}
-```
 
 
 
