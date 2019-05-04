@@ -1,0 +1,420 @@
+---
+title: "Summary Statistics: Establishing Monarch Butterfly Breeding Habitat on Iowa Swine Production Sites"
+author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{rotating}
+  - \usepackage{caption} 
+  - \captionsetup[table]{skip=10pt}
+output: 
+  pdf_document:
+    fig_caption: TRUE
+---
+
+```{r setup, purl=FALSE, echo=FALSE}
+library("knitr")
+opts_chunk$set(echo    = FALSE, 
+               results = 'asis',
+               message = FALSE)
+```
+
+```{r packages}
+suppressWarnings(library("tidyverse"))
+library("ISUmonarch")
+library("xtable")
+options(xtable.comment = FALSE)
+```
+
+\setlength{\tabcolsep}{3pt}
+
+
+```{r sites}
+NCIG_sites = unique(transect %>% 
+                      filter(grant=="iacig") %>%
+                      filter(transectID %in% c("tbyd1a","tbyd2a","tcra1a","tuth3b")) %>%
+                      pull(transectID) %>% as.character())
+```
+
+
+Table \ref{t:nectar2016}, \ref{t:nectar2017}, and \ref{t:nectar2018} provide mean count of nectar plant species averaged across all data collection events within a year. Values in table represent the specific floral counting unit for each species (flower head, ramet [stem], spike, or umbel) and is not associated with number of plants. Floral counting units differ between species. Table \ref{t:density2016}, \ref{t:density2017}, and \ref{t:density2018} provide nectar plant species floral unit density (per m2) averaged across all data collection events within a year. Table \ref{t:ramet2018} provides mean counts of milkweed ramets. This data is unavailable for 2016 and 2017 therefore 2016 and 2017 do not have the associated milkweed ramet tables or figures. Table \ref{t:density2018ramet} provides mean density of milkweed ramets.
+
+Figures \ref{fig:nectar_heatmap_16}, \ref{fig:nectar_heatmap_planted_17}, \ref{fig:nectar_heatmap_planted_18}, \ref{fig:nectar_heatmap_non_planted_17}, and \ref{fig:nectar_heatmap_non_planted_18} are heatmaps which plot the log density of species floral counting units (planted as part of the seed mix and non-planted species) with transects on the columns and species on the rows; transects are sorted by average density and species are sorted by average presence. Figure \ref{fig:ramet_heatmap_18} is a heatmap which plots the log density of milkweed ramets with transects on the columns and species on the rows; transects are sorted by average density and species are sorted by average presence.
+
+
+
+<!-- Table \ref{t:environment} provides a binary response of whether there were any  -->
+<!-- flowering plants or milkweed present in the area around the site during any  -->
+<!-- round. -->
+
+
+<!-- Nectar -->
+
+```{r nectar_table_function}
+nectar_table <- function(yr, flt, label) {
+  nectar %>%
+    
+    mutate(round = as.factor(round)) %>%
+    
+    filter(transectID %in% NCIG_sites, year == yr) %>%
+    
+    group_by(`Nectar Plant Species`, transectID, round) %>%
+    summarize(count = sum(count)) %>%
+    complete(transectID, round, fill = list(count = 0)) %>%
+    group_by(`Nectar Plant Species`, transectID) %>%
+    summarize(total = mean(count) %>% round(1)) %>%
+    complete(transectID = NCIG_sites) %>%
+    replace(.==0, NA) %>%
+    tidyr::spread(transectID, total, fill=NA, drop=FALSE) %>%
+    arrange(`Nectar Plant Species`) %>% 
+    
+    filter(`Nectar Plant Species` %in% flt) %>%
+    
+    xtable(digits = 1,
+           caption=paste(yr, "nectar plant species: mean count across all surveys"),
+           label = paste("t:",label,sep="")) %>%
+    print(include.rownames = FALSE, NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\small",
+          floating.environment = "sidewaystable") 
+}
+```
+
+```{r nectar, warning=FALSE}
+nectar_table(2016, unique(nectar$`Nectar Plant Species`), 
+             label = "nectar2016")
+nectar_table(2017, unique(nectar$`Nectar Plant Species`), 
+             label = "nectar2017")
+nectar_table(2018, unique(nectar$`Nectar Plant Species`), 
+             label = "nectar2018")
+
+```
+
+
+
+
+```{r nectar_density_table}
+nectar_density_table <- function(yr, flt, label) {
+nectar %>%
+  mutate(`Nectar Plant Species` = 
+           fct_recode(`Nectar Plant Species`,
+                      smartweed = "swamp smartweed",
+                      smartweed = "pennsylvania smartweed",
+                      `culvers root` = "culver's root",
+                      `shepherds purse` = "shepherd's purse",
+                      `yellow sweet clover` = "yellow sweetclover"),
+         year = as.character(year),
+         round = as.factor(round)) %>% 
+  
+  filter(transectID %in% NCIG_sites, year == yr) %>%
+  
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
+  
+  group_by(`Nectar Plant Species`, transectID, round) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  group_by(`Nectar Plant Species`, transectID) %>%
+  summarize(density = mean(density, na.rm=TRUE)) %>%
+  
+  complete(transectID = NCIG_sites) %>%
+  ungroup() %>% 
+  select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
+  tidyr::spread(transectID, density, fill=NA) %>%
+  arrange(`Nectar Plant Species`) %>% 
+  
+  filter(`Nectar Plant Species` %in% flt) %>%
+    
+  xtable(digits = 2,
+           caption=paste(yr, "nectar plant species density: average density (count / m2) across all rounds"),
+           label=paste("t:",label,sep="")) %>%
+    print(include.rownames = FALSE, NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\small",
+          floating.environment = "sidewaystable") 
+}
+```
+
+```{r nectar_density, warning=FALSE, message=FALSE}
+nectar_density_table(yr = 2016, flt = unique(nectar$`Nectar Plant Species`),
+                     label = "density2016")
+nectar_density_table(yr = 2017, flt = unique(nectar$`Nectar Plant Species`),
+                     label = "density2017")
+nectar_density_table(yr = 2018, flt = unique(nectar$`Nectar Plant Species`),
+                     label = "density2018")
+```
+
+
+```{r nectar_density_heatmap}
+nectar_density_heatmap <- function(yr, flt, plnt="planted") {
+tmp=nectar %>%
+  mutate(year = as.character(year),
+         round = as.factor(round)) %>% 
+  
+  left_join(species[,c("common_name", "planted_non_planted")], by=c("Nectar Plant Species"="common_name")) %>%
+    
+  filter(transectID %in% NCIG_sites, year %in% yr, planted_non_planted %in% plnt) %>%
+  
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
+  
+  group_by(`Nectar Plant Species`, transectID, round) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  group_by(`Nectar Plant Species`, transectID) %>%
+  summarize(density = mean(density, na.rm=TRUE)) %>%
+  
+  complete(transectID = NCIG_sites) %>%
+  ungroup() %>% 
+  select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
+  tidyr::spread(transectID, density, fill=NA) %>%
+  arrange(`Nectar Plant Species`) %>% 
+  
+  filter(`Nectar Plant Species` %in% flt) %>%
+  
+  gather(variable, value, -`Nectar Plant Species`) %>%
+  
+  mutate(presence = ifelse(is.na(value), 0, 1))
+  
+  tran.order = tmp %>% group_by(variable) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(desc(avg.density)) %>% select(variable) %>% pull(variable)
+  
+  # species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+  
+  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+
+  tmp$variable <- factor(tmp$variable, levels = tran.order)
+  tmp$`Nectar Plant Species` <- factor(tmp$`Nectar Plant Species`, levels = species.order)
+  
+  ggplot(tmp, aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
+  geom_tile(aes(fill = value), color="grey") + 
+  theme_bw() + labs(x="", y="", fill="Log(Density)") +
+  scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+  scale_x_discrete(position = "top") +
+  theme(axis.text.x.top = element_text(vjust = 0.5))
+}
+```
+
+\newpage
+
+
+```{r nectar_heatmap_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016. \\label{fig:nectar_heatmap_16}"}
+nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt=c("planted","non planted"))
+```
+
+
+```{r nectar_heatmap_planted_17, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017. \\label{fig:nectar_heatmap_planted_17}"}
+nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
+```
+
+
+```{r nectar_heatmap_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. \\label{fig:nectar_heatmap_planted_18}"}
+nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="planted")
+```
+
+
+<!-- # ```{r nectar_heatmap_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016."} -->
+<!-- # nectar_density_heatmap(yr = 2016, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted") -->
+<!-- # ``` -->
+
+
+```{r nectar_heatmap_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017. \\label{fig:nectar_heatmap_non_planted_17}"}
+nectar_density_heatmap(yr = 2017, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
+```
+
+
+```{r nectar_heatmap_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of nectar species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. \\label{fig:nectar_heatmap_non_planted_18}"}
+nectar_density_heatmap(yr = 2018, flt = unique(nectar$`Nectar Plant Species`), plnt="non planted")
+```
+
+
+
+
+
+
+
+<!-- Ramet -->
+
+```{r ramet_table_function}
+ramet_table <- function(yr, flt, label) {
+  ramet %>%
+    
+    mutate(round = as.factor(round)) %>%
+    
+    filter(transectID %in% NCIG_sites, year == yr) %>%
+    
+    group_by(`Nectar Plant Species`, transectID, round) %>%
+    summarize(count = sum(count)) %>%
+    complete(transectID, round, fill = list(count = 0)) %>%
+    group_by(`Nectar Plant Species`, transectID) %>%
+    summarize(total = mean(count) %>% round(1)) %>%
+    complete(transectID = NCIG_sites) %>%
+    replace(.==0, NA) %>%
+    tidyr::spread(transectID, total, fill=NA, drop=FALSE) %>%
+    arrange(`Nectar Plant Species`) %>% 
+    
+    filter(`Nectar Plant Species` %in% flt) %>%
+    
+    xtable(digits = 1,
+           caption=paste(yr, "ramet plant species: mean count across all surveys"),
+           label = paste("t:",label,sep="")) %>%
+    print(include.rownames = FALSE, NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\tiny",
+          floating.environment = "sidewaystable") 
+}
+```
+
+```{r ramet, warning=FALSE}
+# ramet_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2017")
+ramet_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2018")
+```
+
+
+
+
+\newpage
+
+
+
+```{r ramet_density_table}
+ramet_density_table <- function(yr, flt, label) {
+ramet %>%
+  mutate(`Nectar Plant Species` = 
+           fct_recode(`Nectar Plant Species`,
+                      smartweed = "swamp smartweed",
+                      smartweed = "pennsylvania smartweed",
+                      `culvers root` = "culver's root",
+                      `shepherds purse` = "shepherd's purse",
+                      `yellow sweet clover` = "yellow sweetclover"),
+         year = as.character(year),
+         round = as.factor(round)) %>% 
+  
+  filter(transectID %in% NCIG_sites, year == yr) %>%
+  
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
+  
+  group_by(`Nectar Plant Species`, transectID, round) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  group_by(`Nectar Plant Species`, transectID) %>%
+  summarize(density = mean(density, na.rm=TRUE)) %>%
+  
+  complete(transectID = NCIG_sites) %>%
+  ungroup() %>% 
+  select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
+  tidyr::spread(transectID, density, fill=NA) %>%
+  arrange(`Nectar Plant Species`) %>% 
+  
+  filter(`Nectar Plant Species` %in% flt) %>%
+    
+  xtable(digits = 2,
+           caption=paste(yr, "ramet plant species density: average density (count / m2) across all rounds"),
+           label=paste("t:",label,sep="")) %>%
+    print(include.rownames = FALSE, NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\tiny",
+          floating.environment = "sidewaystable") 
+}
+```
+
+```{r ramet_density, warning=FALSE, message=FALSE}
+# ramet_density_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "density2017ramet")
+ramet_density_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "density2018ramet")
+```
+
+
+```{r ramet_density_heatmap}
+ramet_density_heatmap <- function(yr, flt) {
+
+tmp=ramet %>%
+  mutate(`Nectar Plant Species` = 
+           fct_recode(`Nectar Plant Species`,
+                      smartweed = "swamp smartweed",
+                      smartweed = "pennsylvania smartweed",
+                      `culvers root` = "culver's root",
+                      `shepherds purse` = "shepherd's purse",
+                      `yellow sweet clover` = "yellow sweetclover"),
+         year = as.character(year),
+         round = as.factor(round)) %>% 
+  
+  left_join(species[,c("common_name", "planted_non_planted")], by=c("Nectar Plant Species"="common_name")) %>%
+    
+  filter(transectID %in% NCIG_sites, year == yr) %>%
+  
+  left_join(subset(ISUmonarch::survey, year==yr) %>% 
+              mutate(round = as.factor(round)) %>%
+              select(transectID, length, round), by=c("transectID", "round")) %>%
+  
+  group_by(`Nectar Plant Species`, transectID, round) %>%
+  summarize(density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  group_by(`Nectar Plant Species`, transectID) %>%
+  summarize(density = mean(density, na.rm=TRUE)) %>%
+  
+  complete(transectID = NCIG_sites) %>%
+  ungroup() %>% 
+  select(`Nectar Plant Species`, transectID, density) %>%
+  replace(.==0, NA) %>%
+  tidyr::spread(transectID, density, fill=NA) %>%
+  arrange(`Nectar Plant Species`) %>% 
+  
+  filter(`Nectar Plant Species` %in% flt) %>%
+  
+  gather(variable, value, -`Nectar Plant Species`) %>%
+  
+  mutate(presence = ifelse(is.na(value), 0, 1))
+  
+  tran.order = tmp %>% group_by(variable) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(desc(avg.density)) %>% select(variable) %>% pull(variable)
+  
+  # species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(value, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+  
+  species.order = tmp %>% group_by(`Nectar Plant Species`) %>% summarise(avg.density = mean(presence, na.rm=TRUE)) %>% arrange(avg.density) %>% select(`Nectar Plant Species`) %>% pull(`Nectar Plant Species`)
+
+  tmp$variable <- factor(tmp$variable, levels = tran.order)
+  tmp$`Nectar Plant Species` <- factor(tmp$`Nectar Plant Species`, levels = species.order)
+  
+  ggplot(tmp, aes(x=variable, y=`Nectar Plant Species`, z= value)) + 
+  geom_tile(aes(fill = value), color="grey") + 
+  theme_bw() + labs(x="", y="", fill="Log(Density)") +
+  scale_fill_gradient(na.value = 'white', low="navy", high="salmon", trans="log") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+  scale_x_discrete(position = "top") +
+  theme(axis.text.x.top = element_text(vjust = 0.5))
+}
+```
+
+
+<!-- # ```{r ramet_heatmap_17, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."} -->
+<!-- # ramet_density_heatmap(yr = 2017, flt = unique(ramet$`Nectar Plant Species`)) -->
+<!-- # ``` -->
+
+
+```{r ramet_heatmap_18, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. \\label{fig:ramet_heatmap_18}"}
+ramet_density_heatmap(yr = 2018, flt = unique(ramet$`Nectar Plant Species`))
+```
+
+
+
+
+
+
+
+
+
+
+
