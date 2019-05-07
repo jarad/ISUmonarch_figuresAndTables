@@ -31,7 +31,8 @@ options(xtable.comment = FALSE)
 ```{r sites}
 NCIG_sites = unique(transect %>% 
                       filter(grant=="ncig") %>% 
-                      filter(!(transectID %in% c("tsie1a","tber1a","tber3a"))) %>%
+                      filter(!(transectID %in% c("tsie1a"))) %>%
+                                                 # ,"tber1a","tber3a"))) %>%
                       pull(transectID) %>% as.character())
 ```
 
@@ -54,7 +55,7 @@ Figures \ref{fig:nectar_heatmap_16}, \ref{fig:nectar_heatmap_planted_17}, \ref{f
 <!-- Nectar -->
 
 ```{r nectar_table_function}
-nectar_table <- function(yr, flt, label) {
+nectar_table <- function(yr, flt, label, fntsz="small") {
   nectar %>%
     
     mutate(round = as.factor(round)) %>%
@@ -79,26 +80,31 @@ nectar_table <- function(yr, flt, label) {
     print(include.rownames = FALSE, NA.string="-", 
           table.placement = "p",
           caption.placement = "top",
-          size="\\small",
+          size=paste0("\\", fntsz),
           floating.environment = "sidewaystable") 
 }
 ```
 
 ```{r nectar, warning=FALSE}
 nectar_table(2016, unique(nectar$`Nectar Plant Species`), 
-             label = "nectar2016")
+             label = "nectar2016",
+             fntsz="tiny")
 nectar_table(2017, unique(nectar$`Nectar Plant Species`), 
-             label = "nectar2017")
-nectar_table(2018, species1, 
-             label = "nectar2018")
-nectar_table(2018, species2, 
-             label = "nectar2018")
+             label = "nectar2017",
+             fntsz="tiny")
+# nectar_table(2018, species1, 
+#              label = "nectar2018")
+# nectar_table(2018, species2, 
+#              label = "nectar2018")
+nectar_table(2018, unique(nectar$`Nectar Plant Species`), 
+             label = "nectar2018",
+             fntsz="tiny")
 ```
 
 
 
 ```{r nectar_density_table}
-nectar_density_table <- function(yr, flt, label) {
+nectar_density_table <- function(yr, flt, label, fntsz="small") {
 nectar %>%
   mutate(`Nectar Plant Species` = 
            fct_recode(`Nectar Plant Species`,
@@ -138,20 +144,30 @@ nectar %>%
     print(include.rownames = FALSE, NA.string="-", 
           table.placement = "p",
           caption.placement = "top",
-          size="\\small",
+          size=paste0("\\", fntsz),
           floating.environment = "sidewaystable") 
 }
 ```
 
 ```{r nectar_density, warning=FALSE, message=FALSE}
 nectar_density_table(yr = 2016, flt = unique(nectar$`Nectar Plant Species`),
-                     label = "density2016")
+                     label = "density2016",
+                     fntsz="tiny")
 nectar_density_table(yr = 2017, flt = unique(nectar$`Nectar Plant Species`),
-                     label = "density2017")
-nectar_density_table(yr = 2018, flt = species1,
-                     label = "density2018")
-nectar_density_table(yr = 2018, flt = species2,
-                     label = "density2018")
+                     label = "density2017",
+                     fntsz="tiny")
+# nectar_density_table(yr = 2018, flt = species1,
+#                      label = "density2018",
+#                      fntsz="tiny")
+# nectar_density_table(yr = 2018, flt = species2,
+#                      label = "density2018",
+#                      fntsz="tiny")
+
+
+nectar_density_table(yr = 2018, flt = unique(nectar$`Nectar Plant Species`),
+                     label = "density2018",
+                     fntsz="tiny")
+
 ```
 
 
