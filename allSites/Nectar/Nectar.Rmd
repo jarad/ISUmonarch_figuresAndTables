@@ -97,7 +97,7 @@ nectar_table <- function(yr, flt, transects, label) {
 }
 ```
 
-```{r nectar, warning=FALSE}
+```{r nectar, warning=FALSE, eval=FALSE}
 # 2016 NCIG
 nectar_table(yr=2016, 
              flt=native_species,
