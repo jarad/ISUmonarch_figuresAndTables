@@ -34,9 +34,8 @@ species = species[order(species)]
 species = species %>% data.frame(common_name=.) %>% 
   left_join(ISUmonarch::species, by="common_name")
 
-native_species = species %>% filter(native_introduced_both=="native") %>% pull(common_name)
-intro_species = species %>% filter(native_introduced_both=="introduced") %>% pull(common_name)
-both_species = species %>% filter(native_introduced_both=="both") %>% pull(common_name)
+plntd_species = species %>% filter(planted_non_planted=="planted") %>% pull(common_name)
+nonplntd_species = species %>% filter(planted_non_planted=="non planted") %>% pull(common_name)
 all_species = species %>% pull(common_name)
 ```
 
