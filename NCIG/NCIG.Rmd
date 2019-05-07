@@ -277,7 +277,9 @@ ramet_table <- function(yr, flt, label) {
 
 ```{r ramet, warning=FALSE}
 # ramet_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2017")
-ramet_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "ramet2018")
+ramet_table(yr=2018, 
+            flt=unique(ramet$`Nectar Plant Species`)[unique(ramet$`Nectar Plant Species`)!="milkweed strip: common milkweed ramet"], 
+            label = "ramet2018")
 ```
 
 
@@ -335,7 +337,9 @@ ramet %>%
 
 ```{r ramet_density, warning=FALSE, message=FALSE}
 # ramet_density_table(yr=2017, flt=unique(ramet$`Nectar Plant Species`), label = "density2017ramet")
-ramet_density_table(yr=2018, flt=unique(ramet$`Nectar Plant Species`), label = "density2018ramet")
+ramet_density_table(yr=2018, 
+                    flt=unique(ramet$`Nectar Plant Species`)[unique(ramet$`Nectar Plant Species`)!="milkweed strip: common milkweed ramet"], 
+                    label = "density2018ramet")
 ```
 
 
@@ -407,7 +411,9 @@ tmp=ramet %>%
 
 
 ```{r ramet_heatmap_18, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. \\label{fig:ramet_heatmap_18}"}
-ramet_density_heatmap(yr = 2018, flt = unique(ramet$`Nectar Plant Species`))
+ramet_density_heatmap(yr = 2018, 
+                      flt = unique(ramet$`Nectar Plant Species`)[unique(ramet$`Nectar Plant Species`)!="milkweed strip: common milkweed ramet"]
+                      )
 ```
 
 
