@@ -36,6 +36,10 @@ species = species %>% data.frame(common_name=.) %>%
 
 plntd_species = species %>% filter(planted_non_planted=="planted") %>% pull(common_name)
 nonplntd_species = species %>% filter(planted_non_planted=="non planted") %>% pull(common_name)
+
+nonplntd_species1 = nonplntd_species[split(1:length(nonplntd_species), cut(1:length(nonplntd_species), 2, labels = FALSE))[[1]]]
+nonplntd_species2 = nonplntd_species[split(1:length(nonplntd_species), cut(1:length(nonplntd_species), 2, labels = FALSE))[[2]]]
+
 all_species = species %>% pull(common_name)
 ```
 
@@ -92,7 +96,7 @@ nectar_table <- function(yr, flt, transects, label) {
           # rotate.colnames = TRUE,
           table.placement = "p",
           caption.placement = "top",
-          size="\\small",
+          size="\\tiny",
           floating.environment = "sidewaystable") 
 }
 ```
@@ -311,169 +315,175 @@ nectar %>%
           table.placement = "p",
           caption.placement = "top",
           size="\\small",
-          floating.environment = "sidewaystable") 
+          floating.environment = "sidewaystable",
+          sanitize.colnames.function = function(x){
+            rotated <- paste("\\begin{sideways}", x, "\\end{sideways}")
+            # put all column names into sideways environments for the rotation.
+            return(c("Nectar Plant Species", paste(rotated[-1], collapse="&")))}
+            # replaces first column name with something else (not rotated).
+    )
 }
 ```
 
 ```{r nectar_density, warning=FALSE, message=FALSE}
 # 2016 NCIG
 nectar_density_table(yr=2016, 
-             flt=native_species,
+             flt=plntd_species,
              transects = ncig,
              label = "density2016_ncig_native")
 nectar_density_table(yr=2016, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = ncig,
              label = "density2016_ncig_intro")
 nectar_density_table(yr=2016, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = ncig,
              label = "density2016_ncig_both")
 # 2016 Pork
 nectar_density_table(yr=2016, 
-             flt=native_species,
+             flt=plntd_species,
              transects = pork,
              label = "density2016_pork_native")
 nectar_density_table(yr=2016, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = pork,
              label = "density2016_pork_intro")
 nectar_density_table(yr=2016, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = pork,
              label = "density2016_pork_both")
 # 2016 ICIG
 nectar_density_table(yr=2016, 
-             flt=native_species,
+             flt=plntd_species,
              transects = iacig,
              label = "density2016_iacig_native")
 nectar_density_table(yr=2016, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = iacig,
              label = "density2016_iacig_intro")
 nectar_density_table(yr=2016, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = iacig,
              label = "density2016_iacig_both")
 # 2016 Soy
 nectar_density_table(yr=2016, 
-             flt=native_species,
+             flt=plntd_species,
              transects = soy,
              label = "density2016_soy_native")
 nectar_density_table(yr=2016, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = soy,
              label = "density2016_soy_intro")
 nectar_density_table(yr=2016, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = soy,
              label = "density2016_soy_both")
 
 
 # 2017 NCIG
 nectar_density_table(yr=2017, 
-             flt=native_species,
+             flt=plntd_species,
              transects = ncig,
              label = "density2017_ncig_native")
 nectar_density_table(yr=2017, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = ncig,
              label = "density2017_ncig_intro")
 nectar_density_table(yr=2017, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = ncig,
              label = "density2017_ncig_both")
 # 2017 Pork
 nectar_density_table(yr=2017, 
-             flt=native_species,
+             flt=plntd_species,
              transects = pork,
              label = "density2017_pork_native")
 nectar_density_table(yr=2017, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = pork,
              label = "density2017_pork_intro")
 nectar_density_table(yr=2017, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = pork,
              label = "density2017_pork_both")
 # 2017 ICIG
 nectar_density_table(yr=2017, 
-             flt=native_species,
+             flt=plntd_species,
              transects = iacig,
              label = "density2017_iacig_native")
 nectar_density_table(yr=2017, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = iacig,
              label = "density2017_iacig_intro")
 nectar_density_table(yr=2017, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = iacig,
              label = "density2017_iacig_both")
 # 2017 Soy
 nectar_density_table(yr=2017, 
-             flt=native_species,
+             flt=plntd_species,
              transects = soy,
              label = "density2017_soy_native")
 nectar_density_table(yr=2017, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = soy,
              label = "density2017_soy_intro")
 nectar_density_table(yr=2017, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = soy,
              label = "density2017_soy_both")
 
 
 # 2018 NCIG
 nectar_density_table(yr=2018, 
-             flt=native_species,
+             flt=plntd_species,
              transects = ncig,
              label = "density2018_ncig_native")
 nectar_density_table(yr=2018, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = ncig,
              label = "density2018_ncig_intro")
 nectar_density_table(yr=2018, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = ncig,
              label = "density2018_ncig_both")
 # 2018 Pork
 nectar_density_table(yr=2018, 
-             flt=native_species,
+             flt=plntd_species,
              transects = pork,
              label = "density2018_pork_native")
 nectar_density_table(yr=2018, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = pork,
              label = "density2018_pork_intro")
 nectar_density_table(yr=2018, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = pork,
              label = "density2018_pork_both")
 # 2018 ICIG
 nectar_density_table(yr=2018, 
-             flt=native_species,
+             flt=plntd_species,
              transects = iacig,
              label = "density2018_iacig_native")
 nectar_density_table(yr=2018, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = iacig,
              label = "density2018_iacig_intro")
 nectar_density_table(yr=2018, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = iacig,
              label = "density2018_iacig_both")
 # 2018 Soy
 nectar_density_table(yr=2018, 
-             flt=native_species,
+             flt=plntd_species,
              transects = soy,
              label = "density2018_soy_native")
 nectar_density_table(yr=2018, 
-             flt=intro_species,
+             flt=nonplntd_species1,
              transects = soy,
              label = "density2018_soy_intro")
 nectar_density_table(yr=2018, 
-             flt=both_species,
+             flt=nonplntd_species2,
              transects = soy,
              label = "density2018_soy_both")
 
