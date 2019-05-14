@@ -279,11 +279,6 @@ nectar_table(yr=2018,
 
 
 
-
-\newpage
-
-
-
 ```{r nectar_density_table}
 nectar_density_table <- function(yr, flt, transects, label, brk=NULL, capsites) {
 nectar %>%
