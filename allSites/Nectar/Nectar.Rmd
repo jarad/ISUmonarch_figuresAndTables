@@ -285,7 +285,7 @@ nectar_table(yr=2018,
 
 
 ```{r nectar_density_table}
-nectar_density_table <- function(yr, flt, transects, label, brk=NULL) {
+nectar_density_table <- function(yr, flt, transects, label, brk=NULL, capsites) {
 nectar %>%
   mutate(`Nectar Plant Species` = 
            fct_recode(`Nectar Plant Species`,
@@ -320,7 +320,7 @@ nectar %>%
   filter(`Nectar Plant Species` %in% flt) %>%
     
   xtable(digits = 2,
-         caption=paste(yr, "Nectar plant species density: average density (count / m2) across all rounds"),
+         caption=paste(yr, "Nectar plant species density: average density (count / m2) across all rounds for", capsites, "grant transects"),
          label=paste("t:",label,sep=""),
          align = make_align_string(., brk)) %>%
     print(include.rownames = FALSE, 
@@ -344,43 +344,52 @@ nectar %>%
 nectar_density_table(yr=2016, 
              flt=plntd_species,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2016_ncig_native")
 nectar_density_table(yr=2016, 
              flt=nonplntd_species1,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2016_ncig_intro")
 nectar_density_table(yr=2016, 
              flt=nonplntd_species2,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2016_ncig_both")
 # 2016 Pork & Soy
 nectar_density_table(yr=2016, 
              flt=plntd_species,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2016_pork_native",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2016, 
              flt=nonplntd_species1,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2016_pork_intro",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2016, 
              flt=nonplntd_species2,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2016_pork_both",
-             brk = length(soy))
+             brk = length(pork))
 # 2016 ICIG
 nectar_density_table(yr=2016, 
              flt=plntd_species,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2016_iacig_native")
 nectar_density_table(yr=2016, 
              flt=nonplntd_species1,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2016_iacig_intro")
 nectar_density_table(yr=2016, 
              flt=nonplntd_species2,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2016_iacig_both")
 
 
@@ -389,44 +398,53 @@ nectar_density_table(yr=2016,
 nectar_density_table(yr=2017, 
              flt=plntd_species,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2017_ncig_native")
 nectar_density_table(yr=2017, 
              flt=nonplntd_species1,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2017_ncig_intro")
 nectar_density_table(yr=2017, 
              flt=nonplntd_species2,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2017_ncig_both")
 # 2017 Pork & Soy
 nectar_density_table(yr=2017, 
              flt=plntd_species,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2017_pork_native",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2017, 
              flt=nonplntd_species1,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2017_pork_intro",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2017, 
              flt=nonplntd_species2,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2017_pork_both",
-             brk = length(soy))
+             brk = length(pork))
 
 # 2017 ICIG
 nectar_density_table(yr=2017, 
              flt=plntd_species,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2017_iacig_native")
 nectar_density_table(yr=2017, 
              flt=nonplntd_species1,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2017_iacig_intro")
 nectar_density_table(yr=2017, 
              flt=nonplntd_species2,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2017_iacig_both")
 
 
@@ -435,43 +453,52 @@ nectar_density_table(yr=2017,
 nectar_density_table(yr=2018, 
              flt=plntd_species,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2018_ncig_native")
 nectar_density_table(yr=2018, 
              flt=nonplntd_species1,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2018_ncig_intro")
 nectar_density_table(yr=2018, 
              flt=nonplntd_species2,
              transects = ncig,
+             capsites = "NCIG",
              label = "density2018_ncig_both")
 # 2018 Pork & Soy
 nectar_density_table(yr=2018, 
              flt=plntd_species,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2018_pork_native",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2018, 
              flt=nonplntd_species1,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2018_pork_intro",
-             brk = length(soy))
+             brk = length(pork))
 nectar_density_table(yr=2018, 
              flt=nonplntd_species2,
-             transects = c(soy,pork),
+             transects = c(pork, soy),
+             capsites = "Pork and Soy",
              label = "density2018_pork_both",
-             brk = length(soy))
+             brk = length(pork))
 # 2018 ICIG
 nectar_density_table(yr=2018, 
              flt=plntd_species,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2018_iacig_native")
 nectar_density_table(yr=2018, 
              flt=nonplntd_species1,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2018_iacig_intro")
 nectar_density_table(yr=2018, 
              flt=nonplntd_species2,
              transects = iacig,
+             capsites = "IACIG",
              label = "density2018_iacig_both")
 
 ```
