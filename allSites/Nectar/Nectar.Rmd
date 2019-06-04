@@ -636,9 +636,13 @@ nectar_density_heatmap(yr = 2018,
 ```{r inflorescence, echo=FALSE, warning=FALSE}
 d <- nectar %>%
   mutate(ymd = lubridate::ymd(paste(year,month,day,sep="-"))) %>%
-  group_by(year, transectID) %>%
+  group_by(`Nectar Plant Species`, year, transectID) %>%
   summarize(inflorescence = sum(count),
             richness = sum(count>0)) %>%
+  mutate(richness = ifelse(richness>0, 1, 0)) %>%
+  group_by(year, transectID) %>%
+  summarize(inflorescence = sum(inflorescence),
+            richness = sum(richness)) %>%
   left_join(ISUmonarch::transect, by="transectID") %>%
   filter(!(transectID %in% c("tuth1a", "tuth2a", "tsie1a"))) %>%
   ungroup() %>%
@@ -647,22 +651,21 @@ d <- nectar %>%
 
 
 ```{r inflorescence_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the inflorescence for the nectar data across years and faceting the transects by grant. \\label{fig:inflorescence}"}
-ggplot(d, aes(x=year, y=inflorescence)) + 
+ggplot(d, aes(x=year, y=log(inflorescence))) + 
   geom_point(aes(color=transectID)) +
   geom_line(aes(color=transectID, group=transectID)) +
   facet_wrap(~grant) +
   theme_bw() + 
-  scale_y_log10() +
-  labs(y="Inflorescence", x="Year")
+  # scale_y_continuous(trans = "log") + 
+  labs(y="log(Inflorescence)", x="Year")
 ```
 
 
 ```{r richness_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the richness for the nectar data across years and faceting the transects by grant. \\label{fig:richness}"}
-ggplot(d, aes(x=year, y=richness)) + 
+ggplot(d, aes(x=year, y=log(richness))) + 
   geom_point(aes(color=transectID)) +
   geom_line(aes(color=transectID, group=transectID)) +
   facet_wrap(~grant) +
   theme_bw() + 
-  scale_y_log10() +
-  labs(y="Richness", x="Year")
+  labs(y="log(Richness)", x="Year")
 ```
