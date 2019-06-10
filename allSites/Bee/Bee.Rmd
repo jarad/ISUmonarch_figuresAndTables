@@ -45,10 +45,11 @@ bee %>%
   summarize(count = sum(count)) %>% 
   group_by(transectID, year, `Bee Species`, native_introduced_both) %>% 
   summarize(count = mean(count)) %>% 
-  rename(`Native Species` = native_introduced_both) %>%
+  rename(`Native Status` = native_introduced_both) %>%
   ungroup() %>%
   mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
-  filter(!(is.na(`Native Species`) & count==0)) %>%
+  filter(!(is.na(`Native Status`) & count==0)) %>%
+  filter(!(is.na(`Native Status`))) %>%
   spread(transectID, count, fill=NA)  %>%
     
     xtable(digits = c(0,0,0,0, rep(0,6)),
@@ -73,10 +74,13 @@ bee %>%
   complete(`Bee Species`, transectID, round, fill = list(count = 0)) %>%
   group_by(transectID, year, `Bee Species`, `Nectar Plant Species`) %>% 
   summarize(count = mean(count)) %>% 
-  spread(transectID, count, fill="-") %>% 
+  ungroup() %>%
+  mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
+  filter(!(is.na(`Nectar Plant Species`) & count==0)) %>%
+  spread(transectID, count, fill=NA) %>% 
   as.data.frame %>%
     
-    xtable(digits = rep(1,10),
+    xtable(digits = c(0,0,0,0, rep(2,6)),
            caption=paste("2018 bee species: mean count across all surveys"),
            label = paste("t:bee18",sep="")) %>%
     print(include.rownames = FALSE, 
@@ -99,15 +103,60 @@ bee %>%
 bee %>% 
   rename(common_name = `Nectar Plant Species`) %>%
   left_join(species, by="common_name") %>%
-  complete(`Bee Species`, transectID, round, fill = list(count = 0)) %>%
-  group_by(transectID, year, round, `Bee Species`, native_introduced_both) %>% 
+  complete(`Bee Species`, transectID, year, round, fill = list(count = 0)) %>%
+  group_by(transectID, year, round, `Bee Species`, native_introduced_both) %>%
   summarize(count = sum(count)) %>% 
   group_by(transectID, year, `Bee Species`, native_introduced_both) %>% 
-  summarize(count = mean(count)) %>%
-  ggplot(., aes(x=year, y=count, color=native_introduced_both)) + 
+  summarize(count = mean(count)) %>% 
+  rename(`Native Status` = native_introduced_both) %>%
+  ungroup() %>%
+  mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
+  filter(!(is.na(`Native Status`) & count==0)) %>%
+  filter(!(is.na(`Native Status`))) %>%
+  
+  ggplot(., aes(x=year, y=count, color=`Native Status`)) + 
     geom_point() + 
     facet_grid(`Bee Species`~transectID) + 
     theme_bw() + 
     # scale_y_log10() + 
     labs(x="Year", y="Mean Count", color="Native Status")
 ```
+
+
+
+
+```{r bee_overall, warning=FALSE, message=FALSE}
+bee %>% 
+  group_by(year) %>%
+  summarize(count = sum(count)) %>% 
+  spread(year, count, fill=NA)  %>%
+    
+    xtable(digits = c(0,0,0,0),
+           caption=paste("Bee species: yearly counts across all species"),
+           label = paste("t:bee",sep="")) %>%
+    print(include.rownames = FALSE, 
+          NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top")
+```
+
+
+```{r bee_by_year, warning=FALSE, message=FALSE}
+bee %>% 
+  group_by(year, `Bee Species`) %>%
+  summarize(count = sum(count)) %>% 
+  ungroup() %>%
+  mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
+  spread(year, count, fill=NA)  %>%
+    
+    xtable(digits = c(0,0,0,0,0),
+           caption=paste("Bee species: yearly counts broken down by species"),
+           label = paste("t:bee",sep="")) %>%
+    print(include.rownames = FALSE, 
+          NA.string="-", 
+          table.placement = "p",
+          caption.placement = "top")
+
+```
+
+
