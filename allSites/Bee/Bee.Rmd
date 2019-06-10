@@ -40,14 +40,18 @@ sites = as.character(unique(sites[!(sites %in% c("tuth1a", "tuth2a", "tsie1a", "
 bee %>% 
   rename(common_name = `Nectar Plant Species`) %>%
   left_join(species, by="common_name") %>%
-  complete(`Bee Species`, transectID, round, fill = list(count = 0)) %>%
-  group_by(transectID, year, round, `Bee Species`, native_introduced_both) %>% 
+  complete(`Bee Species`, transectID, year, round, fill = list(count = 0)) %>%
+  group_by(transectID, year, round, `Bee Species`, native_introduced_both) %>%
   summarize(count = sum(count)) %>% 
   group_by(transectID, year, `Bee Species`, native_introduced_both) %>% 
   summarize(count = mean(count)) %>% 
-  spread(transectID, count, fill="-")  %>%
+  rename(`Native Species` = native_introduced_both) %>%
+  ungroup() %>%
+  mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
+  filter(!(is.na(`Native Species`) & count==0)) %>%
+  spread(transectID, count, fill=NA)  %>%
     
-    xtable(digits = rep(1,10),
+    xtable(digits = c(0,0,0,0, rep(0,6)),
            caption=paste("Bee species: mean count across all surveys"),
            label = paste("t:bee",sep="")) %>%
     print(include.rownames = FALSE, 
