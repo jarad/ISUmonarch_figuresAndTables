@@ -95,8 +95,92 @@ bee %>%
 
 
 
+```{r transect_totals, warning=FALSE, message=FALSE}
+transect_totals = bee %>% 
+  filter(year == 2018) %>%
+  complete(`Nectar Plant Species`, transectID, round, fill = list(count = 0)) %>%
+  group_by(transectID, `Bee Species`) %>% 
+  summarize(tot_count = sum(count)) %>%
+  filter(!(is.na(`Bee Species`) & tot_count==0))
+```
 
 
+
+
+```{r bee_percentage_bumble_18, warning=FALSE, message=FALSE}
+bee %>% 
+  filter(year == 2018, `Bee Species`=="bumble bee") %>%
+  complete(`Nectar Plant Species`, transectID, round, fill = list(count = 0)) %>%
+  left_join(transect_totals %>% filter(`Bee Species`=="bumble bee") %>% select(tot_count), "transectID") %>%
+  group_by(transectID, `Nectar Plant Species`) %>% 
+  summarize(per_usage = sum(count)/unique(tot_count)) %>% 
+  ungroup() %>%
+  filter(!(is.na(`Nectar Plant Species`) & per_usage==0)) %>%
+  spread(transectID, per_usage, fill=NA) %>% 
+  as.data.frame %>%
+    
+    xtable(digits = c(0,0, rep(2,4)),
+           caption=paste("2018 bumble bee: percent usage across all surveys"),
+           label = paste("t:bumble_bee18",sep="")) %>%
+    print(include.rownames = FALSE, 
+          NA.string="-", 
+          # rotate.colnames = TRUE,
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\small")
+          # ,
+          # floating.environment = "sidewaystable") 
+```
+
+```{r bee_percentage_honey_18, warning=FALSE, message=FALSE}
+bee %>% 
+  filter(year == 2018, `Bee Species`=="honey bee") %>%
+  complete(`Nectar Plant Species`, transectID, round, fill = list(count = 0)) %>%
+  left_join(transect_totals %>% filter(`Bee Species`=="honey bee") %>% select(tot_count), "transectID") %>%
+  group_by(transectID, `Nectar Plant Species`) %>% 
+  summarize(per_usage = sum(count)/unique(tot_count)) %>% 
+  ungroup() %>%
+  filter(!(is.na(`Nectar Plant Species`) & per_usage==0)) %>%
+  spread(transectID, per_usage, fill=NA) %>% 
+  as.data.frame %>%
+    
+    xtable(digits = c(0,0, rep(2,5)),
+           caption=paste("2018 honey bee: percent usage across all surveys"),
+           label = paste("t:honey_bee18",sep="")) %>%
+    print(include.rownames = FALSE, 
+          NA.string="-", 
+          # rotate.colnames = TRUE,
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\small")
+          # ,
+          # floating.environment = "sidewaystable") 
+```
+
+```{r bee_percentage_solitary_18, warning=FALSE, message=FALSE}
+bee %>% 
+  filter(year == 2018, `Bee Species`=="solitary bee") %>%
+  complete(`Nectar Plant Species`, transectID, round, fill = list(count = 0)) %>%
+  left_join(transect_totals %>% filter(`Bee Species`=="solitary bee") %>% select(tot_count), "transectID") %>%
+  group_by(transectID, `Nectar Plant Species`) %>% 
+  summarize(per_usage = sum(count)/unique(tot_count)) %>% 
+  ungroup() %>%
+  filter(!(is.na(`Nectar Plant Species`) & per_usage==0)) %>%
+  spread(transectID, per_usage, fill=NA) %>% 
+  as.data.frame %>%
+    
+    xtable(digits = c(0,0, rep(2,6)),
+           caption=paste("2018 solitary bee: percent usage across all surveys"),
+           label = paste("t:solitary_bee18",sep="")) %>%
+    print(include.rownames = FALSE, 
+          NA.string="-", 
+          # rotate.colnames = TRUE,
+          table.placement = "p",
+          caption.placement = "top",
+          size="\\small")
+          # ,
+          # floating.environment = "sidewaystable") 
+```
 
 \newpage
 ```{r bee_plot, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This is a visual representation of Table \ref{t:bee}."}
