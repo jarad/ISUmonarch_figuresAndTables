@@ -73,7 +73,7 @@ bee %>%
   filter(year == 2018) %>%
   complete(`Bee Species`, transectID, round, fill = list(count = 0)) %>%
   group_by(transectID, year, `Bee Species`, `Nectar Plant Species`) %>% 
-  summarize(count = mean(count)) %>% 
+  summarize(count = sum(count)) %>% 
   ungroup() %>%
   mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
   filter(!(is.na(`Nectar Plant Species`) & count==0)) %>%
