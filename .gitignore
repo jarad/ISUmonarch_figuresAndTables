@@ -33,4 +33,4 @@ NCIG/*/*.log
 NCIG/*/*.out
 NCIG/*/*.aux
 
-
+*.log
