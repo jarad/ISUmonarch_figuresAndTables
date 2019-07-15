@@ -270,3 +270,14 @@ milkweed %>%
 ```
 
 
+
+
+
+```{r anova, warning=FALSE}
+daub_anova = daubenmire_average %>%
+  left_join(ISUmonarch::transect, by="transectID") %>%
+  mutate(year = as.factor(year))
+model <- lm(mean_percentage ~ class + year + grant, data=daub_anova)
+xtable(drop1(model, .~., test="F"))
+```
+

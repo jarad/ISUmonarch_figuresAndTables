@@ -640,6 +640,7 @@ d <- nectar %>%
   summarize(inflorescence = sum(count),
             richness = sum(count>0)) %>%
   mutate(richness = ifelse(richness>0, 1, 0)) %>%
+  filter(year!="2017" | transectID!="tall1a" | `Nectar Plant Species`!="prostrate vervain") %>%
   group_by(year, transectID) %>%
   summarize(inflorescence = sum(inflorescence),
             richness = sum(richness)) %>%
@@ -650,22 +651,93 @@ d <- nectar %>%
 ```
 
 
-```{r inflorescence_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the inflorescence for the nectar data across years and faceting the transects by grant. \\label{fig:inflorescence}"}
-ggplot(d, aes(x=year, y=log(inflorescence))) + 
+```{r inflorescence_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the inflorescence for the nectar data across years and faceting the transects by grant excluding tall1a in 2017 for ncig sites. \\label{fig:inflorescence}"}
+# ggplot(d, aes(x=year, y=inflorescence)) +
+#   geom_point(aes(color=transectID)) +
+#   geom_line(aes(color=transectID, group=transectID)) +
+#   facet_wrap(~grant) +
+#   theme_bw() + 
+#   scale_y_continuous(trans = "log") +
+#   labs(y="log(Inflorescence)", x="Year")
+
+
+ggplot(d, aes(x=year, y=inflorescence)) +
   geom_point(aes(color=transectID)) +
   geom_line(aes(color=transectID, group=transectID)) +
   facet_wrap(~grant) +
   theme_bw() + 
-  # scale_y_continuous(trans = "log") + 
-  labs(y="log(Inflorescence)", x="Year")
+  labs(y="Inflorescence", x="Year")
 ```
 
 
 ```{r richness_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the richness for the nectar data across years and faceting the transects by grant. \\label{fig:richness}"}
-ggplot(d, aes(x=year, y=log(richness))) + 
+# ggplot(d, aes(x=year, y=log(richness))) +
+#   geom_point(aes(color=transectID)) +
+#   geom_line(aes(color=transectID, group=transectID)) +
+#   facet_wrap(~grant) +
+#   theme_bw() +
+#   labs(y="log(Richness)", x="Year")
+
+ggplot(d, aes(x=year, y=richness)) +
   geom_point(aes(color=transectID)) +
   geom_line(aes(color=transectID, group=transectID)) +
   facet_wrap(~grant) +
-  theme_bw() + 
-  labs(y="log(Richness)", x="Year")
+  theme_bw() +
+  labs(y="Richness", x="Year")
 ```
+
+
+
+
+```{r anova_data, warning=FALSE, message=FALSE}
+da <- nectar %>%
+  mutate(ymd = lubridate::ymd(paste(year,month,day,sep="-")),
+         year = as.factor(as.character(year))) %>%
+  group_by(`Nectar Plant Species`, year, transectID, round) %>%
+  
+  left_join(subset(ISUmonarch::survey) %>% 
+              mutate(round = as.factor(round),
+                     year = as.factor(year)) %>%
+              select(transectID, length, round, year), by=c("transectID", "round", "year")) %>%
+  
+  summarize(inflorescence = sum(count),
+            richness = sum(count>0),
+            density = sum(count, na.rm=TRUE)/as.numeric(unique(length))) %>%
+  
+  mutate(richness = ifelse(richness>0, 1, 0)) %>%
+  complete(transectID, round, fill = list(density = 0)) %>%
+  
+  filter(year!="2017" | transectID!="tall1a" | `Nectar Plant Species`!="prostrate vervain") %>%
+  
+  left_join(ISUmonarch::transect, by="transectID") %>%
+  filter(!(transectID %in% c("tuth1a", "tuth2a", "tsie1a"))) %>%
+  
+  left_join(ISUmonarch::species, by = c("Nectar Plant Species" = "common_name")) %>%
+  ungroup() %>%
+  mutate(year = as.numeric(as.character(year)),
+         year  = factor(year, levels=paste0(min(year):max(year))),
+         transectID = as.factor(transectID),
+         grant = as.factor(grant),
+         round = as.factor(round)
+         )
+```
+
+
+```{r anova_m1, warning=FALSE, message=FALSE}
+# options(contrasts = c("contr.sum","contr.poly"))
+model <- lm(richness ~ round + planted_non_planted + year + grant, data=da)
+xtable(drop1(model, .~., test="F"))
+```
+
+
+
+```{r anova_m2, warning=FALSE, message=FALSE}
+model2 <- lm(density ~ round + planted_non_planted + year + grant, data=da)
+xtable(drop1(model2, .~., test="F"))
+```
+
+
+
+
+
+
