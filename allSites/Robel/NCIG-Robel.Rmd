@@ -53,9 +53,9 @@ robel_average %>%
   tidyr::spread(year, average, fill=NA) %>%
   
   xtable(.,
-         digits = 1, #c(0, 0, rep(1, length(unique(robel$year)))),
-         align = "ll|rrr",
-         caption="Vegetation density using Robel measurements averaged across all rounds",
+         digits = 1, # c(0, 0, rep(1, 4)),
+         align = "ll|rrrr",
+         caption="Vegetation density using Robel measurements averaged across all rounds Caption 1234",
          label = "t:robel") %>%
   print(include.rownames = FALSE,
         NA.string="-",
@@ -67,7 +67,7 @@ robel_average %>%
 
 <!-- Plots of summary stats  -->
 
-```{r robel_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the average amount of vegetation by year and is faceted by grant. The colors correspond to the different trasects. \\label{fig:robel_plot_1}"}
+```{r robel_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the average amount of vegetation by year and is faceted by grant. The colors correspond to the different trasects. Caption 9999 \\label{fig:robel_plot_1}"}
 robel_average %>% 
   left_join(transect, by=c("transectID")) %>%
   ungroup() %>%
