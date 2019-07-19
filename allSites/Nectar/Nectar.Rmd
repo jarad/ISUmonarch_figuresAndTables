@@ -556,7 +556,7 @@ tmp=nectar %>%
 Here are some heatmaps for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence.
 
 
-```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
+```{r nectar_heatmap_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016. Caption 1234"}
 nectar_density_heatmap(yr = 2016, 
                        flt = all_species, 
                        transects = all_transects, 
@@ -564,7 +564,7 @@ nectar_density_heatmap(yr = 2016,
 ```
 
 
-```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
+```{r nectar_heatmap_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017. Caption 1235"}
 nectar_density_heatmap(yr = 2017, 
                        flt = all_species, 
                        transects = all_transects, 
@@ -572,7 +572,7 @@ nectar_density_heatmap(yr = 2017,
 ```
 
 
-```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2018."}
+```{r nectar_heatmap_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species planted and non-planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2018. Caption 1236"}
 nectar_density_heatmap(yr = 2018, 
                        flt = all_species, 
                        transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
@@ -582,7 +582,7 @@ nectar_density_heatmap(yr = 2018,
 
 
 
-```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016."}
+```{r nectar_heatmap2_planted_16, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2016. Caption 1237"}
 nectar_density_heatmap(yr = 2016, 
                        flt = all_species, 
                        transects = all_transects,
@@ -590,7 +590,7 @@ nectar_density_heatmap(yr = 2016,
 ```
 
 
-```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=6, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017."}
+```{r nectar_heatmap2_planted_17, warning=FALSE, message=FALSE, fig.height=6, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by avg presence for year 2017. Caption 1238"}
 nectar_density_heatmap(yr = 2017, 
                        flt = all_species, 
                        transects = all_transects,
@@ -598,7 +598,7 @@ nectar_density_heatmap(yr = 2017,
 ```
 
 
-```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=7, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+```{r nectar_heatmap2_planted_18, warning=FALSE, message=FALSE, fig.height=7, fig.width=9, fig.cap="This plot is a heatmap for density of species planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. Caption 1239"}
 nectar_density_heatmap(yr = 2018,
                        flt = all_species, 
                        transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
@@ -606,7 +606,7 @@ nectar_density_heatmap(yr = 2018,
 ```
 
 
-```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016."}
+```{r nectar_heatmap2_non_planted_16, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2016. Caption 1240"}
 nectar_density_heatmap(yr = 2016, 
                        flt = all_species, 
                        transects = all_transects,
@@ -614,7 +614,7 @@ nectar_density_heatmap(yr = 2016,
 ```
 
 
-```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
+```{r nectar_heatmap2_non_planted_17, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017. Caption 1241"}
 nectar_density_heatmap(yr = 2017, 
                        flt = all_species, 
                        transects = all_transects,
@@ -622,7 +622,7 @@ nectar_density_heatmap(yr = 2017,
 ```
 
 
-```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+```{r nectar_heatmap2_non_planted_18, warning=FALSE, message=FALSE, fig.height=9, fig.width=9, fig.cap="This plot is a heatmap for density of species non planted with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. Caption 1242"}
 nectar_density_heatmap(yr = 2018, 
                        flt = all_species, 
                        transects = all_transects[!(all_transects %in% c("tuth1a","tuth2a","tsie1a","tfis1a"))],
@@ -651,7 +651,7 @@ d <- nectar %>%
 ```
 
 
-```{r inflorescence_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the inflorescence for the nectar data across years and faceting the transects by grant excluding tall1a in 2017 for ncig sites. \\label{fig:inflorescence}"}
+```{r inflorescence_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the inflorescence for the nectar data across years and faceting the transects by grant excluding tall1a in 2017 for ncig sites. Caption 1111 \\label{fig:inflorescence}"}
 # ggplot(d, aes(x=year, y=inflorescence)) +
 #   geom_point(aes(color=transectID)) +
 #   geom_line(aes(color=transectID, group=transectID)) +
@@ -670,7 +670,7 @@ ggplot(d, aes(x=year, y=inflorescence)) +
 ```
 
 
-```{r richness_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the richness for the nectar data across years and faceting the transects by grant. \\label{fig:richness}"}
+```{r richness_plot, fig.height=9, fig.width=9, fig.cap="This plot shows the richness for the nectar data across years and faceting the transects by grant. Caption 1122 \\label{fig:richness}"}
 # ggplot(d, aes(x=year, y=log(richness))) +
 #   geom_point(aes(color=transectID)) +
 #   geom_line(aes(color=transectID, group=transectID)) +
