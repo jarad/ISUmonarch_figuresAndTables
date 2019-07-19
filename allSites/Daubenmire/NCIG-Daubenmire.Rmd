@@ -91,8 +91,8 @@ daubenmire_total <- cbind(data.frame(transectID="Mean"),
 # Create table
 rbind(daubenmire_site, daubenmire_total) %>%
   xtable(digits = 0,
-         align = paste("rr|",paste(rep("rrr|",floor(nc/3)),collapse=""),sep="",collapse=""),
-         caption="Daubenmire: average land cover \\% across all rounds",
+         align = paste("rr|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
+         caption="Daubenmire: average land cover \\% across all rounds Caption 1234",
          label = "t:daubenmire") %>%
   print(include.rownames = FALSE, 
         NA.string="na",
@@ -108,7 +108,7 @@ rbind(daubenmire_site, daubenmire_total) %>%
 
 <!-- Plots of summary stats  -->
 
-```{r daubenmire_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_1}"}
+```{r daubenmire_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. Caption 1111 \\label{fig:daub_plot_1}"}
 daubenmire_average %>% 
   filter(!(class %in% c("bare_ground", "leaf_litter"))) %>%
   left_join(transect, by=c("transectID")) %>%
@@ -126,7 +126,7 @@ daubenmire_average %>%
 
 
 
-```{r daubenmire_plot_2, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. \\label{fig:daub_plot_2}"}
+```{r daubenmire_plot_2, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different trasects. Caption 1112 \\label{fig:daub_plot_2}"}
 daubenmire_average %>% 
   filter((class %in% c("bare_ground", "leaf_litter"))) %>%
   left_join(transect, by=c("transectID")) %>%
@@ -144,7 +144,7 @@ daubenmire_average %>%
 
 
 
-```{r daubenmire_plot_3, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different transects. \\label{fig:daub_plot_3}"}
+```{r daubenmire_plot_3, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean percentage of land cover by year and is faceted by class. The colors correspond to the different transects. Caption 1113 \\label{fig:daub_plot_3}"}
 litter %>%
   filter(transectID %in% NCIG_sites) %>% 
   filter(!is.na(depth)) %>%
@@ -176,7 +176,7 @@ daubenmire_average %>%
   ungroup() %>% 
   tidyr::spread(class, average) %>%
   xtable(digits = 1,
-         caption="Daubenmire: average land cover \\% across all rounds and sites",
+         caption="Daubenmire: average land cover \\% across all rounds and sites Caption 1114",
          label = "t:daubenmire_average") %>%
   print(include.rownames = FALSE,
         caption.placement = "top",
@@ -231,7 +231,7 @@ milkweed_total <- cbind(data.frame(transectID="Mean"),
 rbind(milkweed_site, milkweed_total) %>%
   xtable(digits = 1,
          align = paste("rr|",paste(rep("rrr|",floor(nc/3)),collapse=""),sep="",collapse=""),
-         caption="Daubenmire Milkweed: average ramet stems across all rounds",
+         caption="Daubenmire Milkweed: average ramet stems across all rounds Caption 1115",
          label = "t:daubenmire_milkweed") %>%
   print(include.rownames = FALSE, 
         NA.string="na",
@@ -245,7 +245,7 @@ rbind(milkweed_site, milkweed_total) %>%
 ```
 
 
-```{r daubenmire_milkweed_plot, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean ramets by year and is faceted by species. The colors correspond to the different transects. \\label{fig:daub_plot_4}"}
+```{r daubenmire_milkweed_plot, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the mean ramets by year and is faceted by species. The colors correspond to the different transects. Caption 1115 \\label{fig:daub_plot_4}"}
 milkweed %>%
   filter(transectID %in% NCIG_sites) %>% 
   mutate(milkweed_species = fct_recode(milkweed_species, 
