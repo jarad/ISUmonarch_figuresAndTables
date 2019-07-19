@@ -219,22 +219,22 @@ ramet_density_heatmap <- function(yr, flt, transects) {
 ```
 
 
-```{r ramet_heatmap_17, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
+```{r ramet_heatmap_17, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017. Caption 1111"}
 ramet_density_heatmap(yr=2017, flt=ramet_species, transects=sites)
 ```
 
 
-```{r ramet_heatmap_18, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+```{r ramet_heatmap_18, warning=FALSE, message=FALSE, fig.height=3, fig.width=9, fig.cap="This is a heatmap for density of ramet species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. Caption 1112"}
 ramet_density_heatmap(yr=2018, flt=ramet_species, transects=sites18)
 ```
 
 
-```{r milkweed_heatmap_17, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017."}
+```{r milkweed_heatmap_17, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2017. Caption 1113"}
 ramet_density_heatmap(yr=2017, flt=milkweed_species, transects=milkweed_sites)
 ```
 
 
-```{r milkweed_heatmap_18, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018."}
+```{r milkweed_heatmap_18, warning=FALSE, message=FALSE, fig.height=2, fig.width=9, fig.cap="This is a heatmap for density of milkweed species with transects on the columns and species on the rows sorting transects by average density and sorting species by average presence for year 2018. Caption 1114"}
 ramet_density_heatmap(yr=2018, flt=milkweed_species, transects=milkweed_sites)
 ```
 
