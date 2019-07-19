@@ -53,7 +53,7 @@ bee %>%
   spread(transectID, count, fill=NA)  %>%
     
     xtable(digits = c(0,0,0,0, rep(0,6)),
-           caption=paste("Bee species: mean count across all surveys"),
+           caption=paste("Bee species: mean count across all surveys Caption 1234"),
            label = paste("t:bee",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -81,7 +81,7 @@ bee %>%
   as.data.frame %>%
     
     xtable(digits = c(0,0,0,0, rep(2,6)),
-           caption=paste("2018 bee species: mean count across all surveys"),
+           caption=paste("2018 bee species: mean count across all surveys Caption 1235"),
            label = paste("t:bee18",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -120,7 +120,7 @@ bee %>%
   as.data.frame %>%
     
     xtable(digits = c(0,0, rep(2,4)),
-           caption=paste("2018 bumble bee: percent usage across all surveys"),
+           caption=paste("2018 bumble bee: percent usage across all surveys Caption 1236"),
            label = paste("t:bumble_bee18",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -145,7 +145,7 @@ bee %>%
   as.data.frame %>%
     
     xtable(digits = c(0,0, rep(2,5)),
-           caption=paste("2018 honey bee: percent usage across all surveys"),
+           caption=paste("2018 honey bee: percent usage across all surveys Caption 1237"),
            label = paste("t:honey_bee18",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -170,7 +170,7 @@ bee %>%
   as.data.frame %>%
     
     xtable(digits = c(0,0, rep(2,6)),
-           caption=paste("2018 solitary bee: percent usage across all surveys"),
+           caption=paste("2018 solitary bee: percent usage across all surveys Caption 1238"),
            label = paste("t:solitary_bee18",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -183,7 +183,7 @@ bee %>%
 ```
 
 \newpage
-```{r bee_plot, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This is a visual representation of Table \ref{t:bee}."}
+```{r bee_plot, warning=FALSE, message=FALSE, fig.height=5, fig.width=9, fig.cap="This is a visual representation of Table \ref{t:bee}. Caption 1122"}
 bee %>% 
   rename(common_name = `Nectar Plant Species`) %>%
   left_join(species, by="common_name") %>%
@@ -215,8 +215,8 @@ bee %>%
   summarize(count = sum(count)) %>% 
   spread(year, count, fill=NA)  %>%
     
-    xtable(digits = c(0,0,0,0),
-           caption=paste("Bee species: yearly counts across all species"),
+    xtable(digits = c(0,0,0,0,0),
+           caption=paste("Bee species: yearly counts across all species Caption 1111"),
            label = paste("t:bee",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
@@ -233,8 +233,8 @@ bee %>%
   mutate(`Bee Species` = sub(" bee", "", `Bee Species`)) %>%
   spread(year, count, fill=NA)  %>%
     
-    xtable(digits = c(0,0,0,0,0),
-           caption=paste("Bee species: yearly counts broken down by species"),
+    xtable(digits = c(0,0,0,0,0,0),
+           caption=paste("Bee species: yearly counts broken down by species Caption 9999"),
            label = paste("t:bee",sep="")) %>%
     print(include.rownames = FALSE, 
           NA.string="-", 
