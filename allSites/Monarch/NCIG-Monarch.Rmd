@@ -96,7 +96,7 @@ monarch_summary = monarch_summary[rowSums(is.na(monarch_summary[,-c(1,2)]))!=len
 
 monarch_summary %>%
   xtable(digits = 0,
-         caption="Monarch adults (total and during survey), milkweed ramets, monarch eggs on milkweed, and monarch larvae on milkweed. Note ramets, eggs, and larvae were collected differently for 2016.",
+         caption="Monarch adults (total and during survey), milkweed ramets, monarch eggs on milkweed, and monarch larvae on milkweed. Note ramets, eggs, and larvae were collected differently for 2016. Caption 1111",
          label = "t:monarch") %>%
   print(include.rownames = FALSE, NA.string="-",
         rotate.colnames = TRUE,
@@ -112,7 +112,7 @@ monarch_summary %>%
 
 
 
-```{r monarch_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the total number of monarchs sighted anywhere around the site during entire time at site. The colors correspond to the different trasects. \\label{fig:monarch_plot_1}"}
+```{r monarch_plot_1, warning=FALSE, messages=FALSE, fig.height=9, fig.width=9, fig.cap="This plots the total number of monarchs sighted anywhere around the site during entire time at site. The colors correspond to the different trasects. Caption 1112 \\label{fig:monarch_plot_1}"}
 monarch %>% 
   filter(transectID %in% NCIG_sites) %>%
   
