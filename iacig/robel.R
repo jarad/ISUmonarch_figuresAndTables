@@ -3,7 +3,7 @@ library("ISUmonarch")
 
 d <- robel %>% 
   left_join(transect, by=c("siteID","transectID")) %>%
-  filter(grant == "iacig") %>%
+  filter(grant == "iacig", !(siteID %in% c("uth1","uth2"))) %>%
   select(siteID, year, month, height, censored) %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
          month = factor(month, levels = c("June","July","August")))
