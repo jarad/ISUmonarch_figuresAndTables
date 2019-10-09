@@ -11,20 +11,26 @@ d <- cover %>%
 
 ##############################################################################
 d1 <- d %>%
-  filter(class %in% c("csg","forbs","milkweed","wsg","woody_species"))
+  filter(class %in% c("bare_ground","csg","forbs","milkweed","wsg","woody_species"))
 
 s <- d1 %>%
   group_by(year, siteID, month, class) %>%
   summarize(percentage = mean(percentage)) %>%
   ungroup() %>%
   mutate(class = recode(class,
+                        bare_ground   = "Bare ground",
                         csg           = "Cool season grass",
                         wsg           = "Warm season grass",
                         milkweed      = "Milkweed",
                         woody_species = "Woody species",
                         forbs         = "Forbs"),
          class = factor(class, 
-                        levels = c("Forbs","Cool season grass","Warm season grass","Milkweed","Woody species")))
+                        levels = c("Forbs",
+                                   "Cool season grass",
+                                   "Warm season grass",
+                                   "Milkweed",
+                                   "Woody species",
+                                   "Bare ground")))
 
 ggplot(s, aes(year, percentage, 
               linetype = month, group = month)) +
@@ -37,27 +43,27 @@ ggplot(s, aes(year, percentage,
 
 
 ##############################################################################
-d1 <- d %>%
-  filter(class %in% c("bare_ground","leaf_litter"))
-
-s <- d1 %>%
-  group_by(year, siteID, month, class) %>%
-  summarize(percentage = mean(percentage)) %>%
-  ungroup() %>%
-  mutate(class = recode(class,
-                        bare_ground           = "Bare ground",
-                        leaf_litter           = "Leaf litter"),
-         class = factor(class, 
-                        levels = c("Bare ground","Leaf litter")))
-
-ggplot(s, aes(year, percentage, 
-              linetype = month, group = month)) +
-  geom_line() + 
-  facet_grid(class ~ siteID, scales = "free_y") + 
-  labs(x = "Year", y = "Mean Cover (%)", linetype = "Month") +
-  theme_bw() + 
-  theme(legend.position = "bottom", 
-        axis.text.x = element_text(angle=90))
+# d1 <- d %>%
+#   filter(class %in% c("bare_ground","leaf_litter"))
+# 
+# s <- d1 %>%
+#   group_by(year, siteID, month, class) %>%
+#   summarize(percentage = mean(percentage)) %>%
+#   ungroup() %>%
+#   mutate(class = recode(class,
+#                         bare_ground           = "Bare ground",
+#                         leaf_litter           = "Leaf litter"),
+#          class = factor(class, 
+#                         levels = c("Bare ground","Leaf litter")))
+# 
+# ggplot(s, aes(year, percentage, 
+#               linetype = month, group = month)) +
+#   geom_line() + 
+#   facet_grid(class ~ siteID, scales = "free_y") + 
+#   labs(x = "Year", y = "Mean Cover (%)", linetype = "Month") +
+#   theme_bw() + 
+#   theme(legend.position = "bottom", 
+#         axis.text.x = element_text(angle=90))
 
 
 
