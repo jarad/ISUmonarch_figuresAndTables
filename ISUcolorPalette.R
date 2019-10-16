@@ -15,3 +15,10 @@ ISU_secondary_palette <- c("#3E4827", "#76881D", "#A2A569",
 month_col <- c("June"   = ISU_primary_palette[3], 
                "July"   = ISU_primary_palette[2],
                "August" = ISU_primary_palette[1])
+
+class_col <- c("Forbs"             = ISU_secondary_palette[4],
+               "Milkweed"          = ISU_secondary_palette[3],
+               "Warm season grass" = ISU_secondary_palette[1],
+               "Cool season grass" = ISU_secondary_palette[2],
+               "Woody plants"      = ISU_secondary_palette[11],
+               "Bare ground"       = ISU_secondary_palette[10])

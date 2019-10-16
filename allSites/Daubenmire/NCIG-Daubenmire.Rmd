@@ -78,7 +78,7 @@ nc <- ncol(daubenmire_site)
 tmp <- data.frame(nms = names(daubenmire_site)[-1]) %>%
   tidyr::separate(nms, into=c("row1", "row2"), sep="@")
 names(daubenmire_site)[-1] <- tmp$row2
-new_row <- paste(" & \\multicolumn{3}{c|}{",unique(tmp$row1),"}", 
+new_row <- paste(" & \\multicolumn{4}{c|}{",unique(tmp$row1),"}", 
                  collapse="")
 new_row <- gsub("_", " ", new_row)
 new_row <- paste(new_row, "\\\\", collapse=" ")
