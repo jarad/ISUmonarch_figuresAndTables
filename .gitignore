@@ -28,9 +28,7 @@ rsconnect/
 ISUmonarch_figuresAndTables.Rproj
 
 # tex files
-NCIG/*/*.tex
-NCIG/*/*.log
-NCIG/*/*.out
-NCIG/*/*.aux
-
+*.out
+*.aux
 *.log
+*.synctex.gz
