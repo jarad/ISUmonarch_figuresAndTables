@@ -8,42 +8,48 @@ d <- nectar %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
          month = factor(month, levels = c("June","July","August"))) %>%
   rename(common_name = `Nectar Plant Species`) %>%
-  left_join(species %>% 
-              mutate(native_introduced_both = factor(native_introduced_both,
-                                                     levels=c("native","both","introduced"))), 
-            by="common_name") %>%
-  mutate(native = ifelse(native_introduced_both == "native", "Yes", "No"))
+  left_join(species, by="common_name") %>%
+  rename(native = native_introduced_both) %>%
+  mutate(native = recode(native, 
+                         native     = "Native",
+                         both       = "Introduced",
+                         introduced = "Introduced"))
 
-s <- d %>% 
-  # filter(`Nectar Plant Species` != "white clover") %>%
-  group_by(year, siteID, month, native_introduced_both) %>%
-  summarize(total = sum(count))
+s1 <- d %>% 
+  group_by(year, siteID, month) %>%
+  summarize(total = sum(count)) %>%
+  mutate(native = "Total")
 
-ggplot(s , aes(year, total, 
+s2 <- d %>% 
+  group_by(year, siteID, month, native) %>%
+  summarize(total = sum(count)) 
+
+s_both <- bind_rows(s1,s2) %>%
+  mutate(native = factor(native, levels = c("Total","Native","Introduced")))
+
+
+ggplot(s_both , aes(year, total, 
               linetype = month, group = month)) +
   geom_line() + 
-  facet_grid(native_introduced_both ~ siteID) + 
+  facet_grid(native ~ siteID, scales="free_y") + 
   labs(x = "Year", y = "Inflorescence", linetype = "Month") +
-  scale_y_log10() +
+  # scale_y_log10() +
   theme_bw() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle=90))
 
 
 ##############################################################
 # by native/both/introduced
 
 s <- d %>% 
-  group_by(year, siteID, month, `Nectar Plant Species`) %>%
-  summarize(total = sum(count)) %>%
-  rename(common_name = `Nectar Plant Species`) %>%
-  left_join(species, by="common_name") %>%
-  mutate(native_introduced_both = factor(native_introduced_both, 
-                                         levels = c("native","both","introduced"))) %>%
-  select(year, siteID, common_name, native_introduced_both, total)
+  # filter(`Nectar Plant Species` != "white clover") %>%
+  group_by(year, siteID, month, common_name, native) %>%
+  summarize(total = sum(count))
   
 ggplot(s, aes(year, total, 
-              color = common_name, 
-              linetype = native_introduced_both,
+              color = common_name,
+              linetype = native,
               group = common_name)) +
   geom_line() + 
   facet_grid(siteID ~ month) + 
@@ -53,11 +59,11 @@ ggplot(s, aes(year, total,
   theme(legend.position = "bottom")
 
 ss <- s %>%
-  group_by(year, siteID, common_name, native_introduced_both) %>%
+  group_by(year, siteID, common_name, native) %>%
   summarize(total = sum(total)) %>%
   spread(year, total, fill = 0) %>%
-  mutate(ratio = (`2019`+1) / (`2018`+1) ,
-         ratio = round(ratio, 2)) %>% 
-  arrange(native_introduced_both, common_name, siteID, ratio)
+  mutate(log_ratio = log10(`2019`+1) - log10(`2018`+1) ,
+         log_ratio = round(log_ratio)) %>% 
+  arrange(native, log_ratio, common_name, siteID)
 
 ss %>% write_csv("ratio.csv")
