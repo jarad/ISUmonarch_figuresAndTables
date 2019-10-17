@@ -32,3 +32,5 @@ ISUmonarch_figuresAndTables.Rproj
 *.aux
 *.log
 *.synctex.gz
+
+.DS_Store

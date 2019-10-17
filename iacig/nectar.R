@@ -1,6 +1,8 @@
 library("tidyverse")
 library("ISUmonarch")
 
+source("../ISUcolorPalette.R")
+
 d <- nectar %>% 
   left_join(transect, by=c("siteID","transectID")) %>%
   filter(grant == "iacig", !(siteID %in% c("uth1","uth2"))) %>%
@@ -18,26 +20,30 @@ d <- nectar %>%
 s1 <- d %>% 
   group_by(year, siteID, month) %>%
   summarize(total = sum(count)) %>%
-  mutate(native = "Total")
+  mutate(native = "Combined")
 
 s2 <- d %>% 
   group_by(year, siteID, month, native) %>%
   summarize(total = sum(count)) 
 
 s_both <- bind_rows(s1,s2) %>%
-  mutate(native = factor(native, levels = c("Total","Native","Introduced")))
+  mutate(native = factor(native, levels = c("Combined","Native","Introduced")))
 
 
-ggplot(s_both , aes(year, total, 
-              linetype = month, group = month)) +
+g <- ggplot(s_both , aes(year, total, 
+              linetype = month, group = month, color = month)) +
   geom_line() + 
   facet_grid(native ~ siteID, scales="free_y") + 
-  labs(x = "Year", y = "Inflorescence", linetype = "Month") +
+  labs(x = "Year", y = "Inflorescence", linetype = "Month", color = "Month") +
   # scale_y_log10() +
-  theme_bw() + 
+  scale_color_manual(values = month_col) + 
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle=90))
 
+ggsave(file = "nectar_yearly.png",
+       plot = g,
+       width = 6, 
+       height = 4)
 
 ##############################################################
 # by native/both/introduced
@@ -66,4 +72,4 @@ ss <- s %>%
          log_ratio = round(log_ratio)) %>% 
   arrange(native, log_ratio, common_name, siteID)
 
-ss %>% write_csv("ratio.csv")
+ss %>% write_csv("nectar_ratio.csv")

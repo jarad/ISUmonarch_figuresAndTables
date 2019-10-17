@@ -1,5 +1,6 @@
 library("tidyverse")
 library("ISUmonarch")
+library("xtable")
 
 source("../ISUcolorPalette.R")
 
@@ -144,11 +145,11 @@ s <- d %>%
   group_by(year, siteID, month) %>%
   summarize(depth = mean(depth))
 
-ggplot(s, aes(year, depth, 
-              linetype = month, group = month)) +
-  geom_line() + 
-  facet_grid(. ~ siteID, scales = "free_y") + 
-  labs(x = "Year", y = "Mean Depth (cm)", linetype = "Month") +
-  theme_bw() + 
-  theme(legend.position = "bottom", 
-        axis.text.x = element_text(angle=90))
+# ggplot(s, aes(year, depth, 
+#               linetype = month, group = month)) +
+#   geom_line() + 
+#   facet_grid(. ~ siteID, scales = "free_y") + 
+#   labs(x = "Year", y = "Mean Depth (cm)", linetype = "Month") +
+#   theme_bw() + 
+#   theme(legend.position = "bottom", 
+#         axis.text.x = element_text(angle=90))
