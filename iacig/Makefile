@@ -29,3 +29,10 @@ nectar.tex: nectar.R
 	
 ratio.csv: nectar.R
 	Rscript nectar.R
+	
+	
+monarch_yearly.png: monarch.R
+	Rscript monarch.R
+	
+monarch.tex: monarch.R
+	Rscript monarch.R
