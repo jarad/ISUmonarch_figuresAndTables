@@ -57,6 +57,12 @@ class_col <- c("Forbs"             = ISU_secondary_palette[4],
                "Woody plants"      = ISU_secondary_palette[11],
                "Bare ground"       = ISU_secondary_palette[10])
 
+class_linetype <- c("Forbs"        = "solid",
+               "Milkweed"          = "solid",
+               "Warm season grass" = "dotted",
+               "Cool season grass" = "dotted",
+               "Woody plants"      = "dashed",
+               "Bare ground"       = "dashed")
 ```
 
 \setlength{\tabcolsep}{3pt}
@@ -95,7 +101,7 @@ g_monthly <- ggplot(s, aes(year, height,
               group = Month,
               color = Month)) +
   geom_line() + 
-  facet_wrap(~siteID) + 
+  facet_grid(. ~ siteID) + 
   labs(x = "Year", y = "Height (cm)", title="Mean Robel Heights by Month") + 
   theme_bw() + 
   theme(legend.position = "bottom") +
@@ -127,9 +133,9 @@ tab_yearly <- s_yearly %>%
 ```
 
 ```{r robel_yearly_plot, dependson=c("robel_yearly","palette"),fig.cap="Robel heights by year caption"}
-g_yearly <- ggplot(s_yearly, aes(year, height)) +
+g_yearly <- ggplot(s_yearly, aes(year, height, color = siteID)) +
   geom_line() + 
-  facet_wrap(~siteID) + 
+  # facet_grid(siteID ~ .) + 
   labs(x = "Year", 
        y = "Height (cm)",
        title = "Mean Robel Heights") + 
@@ -234,10 +240,12 @@ tab <- ss %>%
 
 
 ```{r daubenmire_yearly_plot, dependson=c("daubenmire_yearly","palette"),fig.cap="Daubenmire figure caption"}
-g_yearly <- ggplot(s, aes(year, percentage)) +
+g_yearly <- ggplot(s, aes(year, percentage, color=class, linetype = class)) +
   geom_line() + 
-  facet_grid(class ~ siteID, scales = "free_y") + 
-  labs(x = "Year", y = "Mean Cover (%)") +
+  facet_grid(. ~ siteID, scales = "free_y") +
+  labs(x = "Year", y = "Mean Cover", title = "Mean Cover by Class") +
+  scale_color_manual(values = class_col) +
+  scale_linetype_manual(values = class_linetype) +
   theme_bw() + 
   theme(legend.position = "bottom", 
         axis.text.x = element_text(angle=90))
@@ -253,7 +261,7 @@ g_yearly_by_class <- ggplot(s, aes(year, percentage,
                    group = class)) +
   geom_area(color=NA) + 
   facet_grid(siteID ~ .) +
-  labs(x = "Year", y = "Mean Cover (%)") +
+  labs(x = "Year", y = "Mean Cover", title = "Cumulative Cover by Class") +
   scale_fill_manual(values = class_col) +
   theme_bw() +
   theme(legend.position = "bottom", 
