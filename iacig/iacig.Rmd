@@ -334,12 +334,12 @@ d <- nectar %>%
 ```{r nectar_yearly_data, dependson="nectar_data"}
 s1 <- d %>% 
   group_by(year, site, month) %>%
-  summarize(total = sum(count)) %>%
+  summarize(total = mean(count)) %>%
   mutate(native = "Combined")
 
 s2 <- d %>% 
   group_by(year, site, month, native) %>%
-  summarize(total = sum(count)) %>%
+  summarize(total = mean(count)) %>%
 
   # Hack to add appropriate zeros
   bind_rows(tibble(site = rep(c("Boyd 1","Boyd 2"), each = 4),
@@ -387,7 +387,10 @@ s <- d %>%
   group_by(year, site, month, common_name, native) %>%
   summarize(total = sum(count)) %>%
   ungroup()
-  
+```  
+
+
+```{r nectar_ratio, dependson="nectar_by_species", eval=FALSE}
 # ggplot(s, aes(year, total, 
 #               color = common_name,
 #               linetype = native,
@@ -460,10 +463,18 @@ tab <- ss %>%
 
 
 
-```{r nectar_heatmap, dependson="nectar_by_species",fig.height=8,fig.cap="Nectar heatmap"}
-g <- ggplot(s %>%
-              mutate(common_name = factor(common_name, 
-                                          levels = rev(sort(unique(common_name))))), 
+```{r nectar_heatmap, dependson="nectar_by_species",fig.height=8,fig.cap="Heat map of average nectar plant inflorescence density; species sorted by average presence."}
+# Determine sort order 
+abundance <- s %>%
+  group_by(common_name) %>%
+  summarize(total = sum(total)) %>%
+  arrange(total)
+
+ss <- s %>%
+  mutate(common_name = factor(common_name,
+                              levels = abundance$common_name))
+
+g <- ggplot(ss, 
             aes(year, common_name, fill = total)) +
   geom_tile() + 
   # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
@@ -471,7 +482,8 @@ g <- ggplot(s %>%
   scale_fill_gradient(low = "cornsilk", high = "darkgreen", trans = "log") +
   theme_bw() +
   theme(legend.position = "none",
-        axis.text.x = element_text(angle=90)) +
+        axis.text.x = element_text(angle=90),
+        axis.text.y = element_text(hjust=0)) +
   labs(x = "", y = "") 
 
 g
