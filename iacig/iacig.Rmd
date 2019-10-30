@@ -598,6 +598,9 @@ ggsave(file = "include/monarch_yearly.png",
 
 ```{r bee_data}
 d <- bee %>% 
+  ungroup() %>%
+  left_join(transect %>% select(transectID, siteID), by = "transectID") %>%
+  select(-transectID) %>%
   filter(siteID %in% sites) %>%
   rename(site = siteID) %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
