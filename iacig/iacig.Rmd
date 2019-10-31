@@ -73,12 +73,15 @@ site_color <- c("Boyd 1" = ISU_primary_palette[4],
 \setlength{\tabcolsep}{3pt}
 
 
-```{r sites, cache=TRUE}
-sites = unique(transect %>% 
+```{r sites}
+sites <- unique(ISUmonarch::transect %>% 
                  filter(grant=="iacig") %>%
                  filter(siteID %in% c("byd1","byd2","cra1","uth3")) %>%
                  pull(siteID) %>% as.character())
 ```
+
+
+
 
 
 # Robel
@@ -173,9 +176,10 @@ ggsave(plot = g_yearly,
 
 
 \clearpage
+
 # Daubenmire
 
-```{r daubenmire_data}
+```{r daubenmire_data, dependson="sites"}
 d <- cover %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, section, class, percentage) %>%
@@ -305,10 +309,11 @@ ggsave(filename = "include/daubenmire_yearly_by_class.png",
 
 
 \clearpage
+
 # Nectar
 
 
-```{r nectar_data}
+```{r nectar_data, dependson="sites"}
 d <- nectar %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, `Nectar Plant Species`, count) %>%
@@ -321,13 +326,19 @@ d <- nectar %>%
                          byd2 = "Boyd 2",
                          cra1 = "Crawfordsville",
                          uth3 = "Uthe 3")) %>%
+  
   rename(common_name = `Nectar Plant Species`) %>%
   left_join(species, by="common_name") %>%
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native",
-                         both       = "Introduced",
-                         introduced = "Introduced"))
+                         both       = "Introduced/weed",
+                         introduced = "Introduced/weed"),
+         native = ifelse(planted_non_planted == "planted",
+                         "Native (planted)", native),
+         
+         native = ifelse(common_name == "marestail",
+                         "Introduced/weed", native))
 ```
 
 
@@ -338,6 +349,7 @@ s1 <- d %>%
   mutate(native = "Combined")
 
 s2 <- d %>% 
+  mutate(native = recode(native, `Native (planted)` = "Native")) %>%
   group_by(year, site, month, native) %>%
   summarize(total = mean(count)) %>%
 
@@ -351,12 +363,15 @@ s2 <- d %>%
   
 
 s_both <- bind_rows(s1,s2) %>%
-  mutate(native = factor(native, levels = c("Combined","Native","Introduced")))
+  mutate(native = factor(native, levels = c("Combined",
+                                            # "Native (planted)", 
+                                            "Native",
+                                            "Introduced/weed")))
 ```
 
 
-```{r nectar_yearly_plot, dependson="nectar_yearly_data",fig.cap="Nectar monthly caption"}
-g <- ggplot(s_both , aes(year, total, 
+```{r nectar_yearly_plot, dependson="nectar_yearly_data",fig.cap="Plots of monthly average native (planted), native, introduced/weed, and total nectar plant inflorescence density by year for each transect."}
+g <- ggplot(s_both, aes(year, total, 
               linetype = month, group = month, color = month)) +
   geom_line() + 
   facet_grid(native ~ site, scales="free_y") + 
@@ -419,7 +434,8 @@ ss %>% write_csv("include/nectar_ratio.csv")
 ss <- s %>%
   group_by(year, site, common_name, native) %>%
   summarize(density = mean(total)) %>%
-  mutate(native = factor(native, levels=c("Native","Introduced"))) %>%
+  mutate(native = factor(native, levels=c("Native (planted)","Native",
+                                          "Introduced/weed"))) %>%
   
   # cra1 has a 70m transect, so adjust to 100m density
   mutate(density = ifelse(site == "cra1", density/.7, density)) %>%
@@ -428,7 +444,8 @@ ss <- s %>%
   arrange(native, common_name) %>%
   rename(`Common name` = "common_name")
 
-n_native = sum(ss$native == "Native")
+n_native  = sum(grepl("Native",  ss$native))
+n_planted = sum(grepl("planted", ss$native))
 ss$native <- NULL
 
 # Fix column names and create additional row
@@ -445,7 +462,7 @@ tab <- ss %>%
   xtable(
     digits = 0,
     align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-    caption="Mean inflourescence (per 100m2) across all rounds. Species above the line are native and below the line are introduced.",
+    caption="Mean inflourescence (count/100m2) across all rounds. Species above the double line are native and species above single line were planted.",
     label = "t:nectar") %>%
   print(
     # file = "include/nectar_yearly.tex",
@@ -456,7 +473,7 @@ tab <- ss %>%
     caption.placement = "top",
     size="\\small",
     # floating.environment = "sidewaystable",
-    hline.after = c(-1,0,n_native,nrow(ss)),
+    hline.after = c(-1,0,n_planted,n_native,n_native,nrow(ss)),
     comment = FALSE
   ) 
 ```
@@ -474,7 +491,11 @@ ss <- s %>%
   mutate(common_name = factor(common_name,
                               levels = abundance$common_name))
 
-g <- ggplot(ss, 
+g <- ggplot(ss %>% 
+              mutate(native = factor(native, 
+                                     levels=c("Native (planted)",
+                                              "Native",
+                                              "Introduced/weed"))), 
             aes(year, common_name, fill = total)) +
   geom_tile() + 
   # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
@@ -491,9 +512,10 @@ g
 
 
 \clearpage
+
 # Monarch
 
-```{r monarch_data}
+```{r monarch_data, dependson="sites"}
 d <- monarch %>% 
   filter(siteID %in% sites,
          type != "palmer amaranth") %>%
@@ -545,7 +567,6 @@ d <- monarch %>%
 ss <- d %>%
   unite("site_year", site, year, sep="@") %>%
   spread(site_year, count, fill = NA) 
-  
 
 
 nc <- ncol(ss)
@@ -564,7 +585,7 @@ ss %>%
   xtable(
     digits = 0,
     align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-caption = "Bee table caption.") %>%
+caption = "Total observed monarch eggs, larvae, adults during the pollard survey, total adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined) plotted by year.") %>%
   print(
     # file = "monarch.tex",
     include.rownames = FALSE,
@@ -573,11 +594,13 @@ caption = "Bee table caption.") %>%
     comment = FALSE)
 ```
 
-```{r monarch_plot, dependson="monarch_data",fig.cap="Monarch caption"}
-g <- ggplot(d %>% filter(Monarch == "Adults, survey"), aes(year, count)) +
+```{r monarch_plot, dependson="monarch_data",fig.cap="Total observed monarch eggs, larvae, and adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined) plotted by year."}
+g <- ggplot(d %>%
+              filter(Monarch %in% c("Adults","Eggs","Larvae","Ramets")), 
+            aes(year, count)) +
   geom_line() + 
-  facet_grid(. ~ site, scales="free_y") + 
-  labs(x = "Year", y = "Number of adult monarchs surveyed") +
+  facet_grid(Monarch ~ site, scales="free_y") + 
+  labs(x = "Year", y = "Total count") +
   # scale_y_log10() + 
   theme_bw() +
   theme(legend.position = "bottom",
@@ -596,10 +619,13 @@ ggsave(file = "include/monarch_yearly.png",
 
 \clearpage
 
-```{r bee_data}
-d <- bee %>% 
+# Bee
+
+```{r bee_data, dependson="sites"}
+d <- ISUmonarch::bee %>% 
   ungroup() %>%
-  left_join(transect %>% select(transectID, siteID), by = "transectID") %>%
+  left_join(ISUmonarch::transect %>% select(transectID, siteID), 
+            by = "transectID") %>%
   select(-transectID) %>%
   filter(siteID %in% sites) %>%
   rename(site = siteID) %>%
@@ -640,7 +666,7 @@ ss %>%
   xtable(
     digits = 0,
     align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-    caption = "Bee table caption.") %>%
+    caption = "Total count of bumble bees, honey bees, and solitary bees by site and year.") %>%
   print(
     # file = "include/bee_yearly.tex",
     add.to.row = list(pos = list(-1), command = new_row),
@@ -649,7 +675,7 @@ ss %>%
     comment = FALSE)
 ```
 
-```{r bee_plot, dependson="bee_data",fig.cap="Bee figure caption"}
+```{r bee_plot, dependson="bee_data",fig.cap="Total count of bumble bees, honey bees, and solitary bees by site and year."}
 g <- ggplot(d, aes(year, total)) +
   geom_line() + 
   # geom_point() + 
@@ -669,4 +695,127 @@ ggsave(file = "include/bee_yearly.png",
        width = 6, 
        height = 4)
 ```
-# Bee
+
+\clearpage
+
+## Plant usage by bees
+
+```{r bee_plants_data, dependson="sites"}
+d <- ISUmonarch::bee_plants %>% 
+  ungroup() %>%
+  left_join(ISUmonarch::transect %>% select(transectID, siteID),
+            by = "transectID") %>%
+  select(-transectID) %>%
+  filter(siteID %in% sites,
+         `Nectar Plant Species` != "unknown") %>%
+  rename(site = siteID) %>%
+  mutate(
+    `Nectar Plant Species` = recode(`Nectar Plant Species`,
+                                    `yellow cone flower` = "yellow coneflower"),
+    
+    month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
+    month = factor(month, levels = c("June","July","August")),
+    
+    site = recode(site, 
+                  byd1 = "Boyd 1", 
+                  byd2 = "Boyd 2",
+                  cra1 = "Crawfordsville",
+                  uth3 = "Uthe 3")) %>%
+  
+  group_by(year, site, `Nectar Plant Species`, `Bee Species`) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  
+  rename(common_name = `Nectar Plant Species`) %>%
+  left_join(species, by="common_name") %>%
+  rename(native = native_introduced_both) %>%
+  mutate(native = recode(native, 
+                         native     = "Native",
+                         both       = "Introduced/weed",
+                         introduced = "Introduced/weed"),
+         native = ifelse(planted_non_planted == "planted",
+                         "Native (planted)", native),
+         
+         native = ifelse(common_name == "marestail",
+                         "Introduced/weed", native))
+```
+
+
+```{r bee_plant_heatmap, dependson="bee_plants_data",fig.height=4,fig.cap="Plant usage by bees."}
+# Determine sort order 
+abundance <- d %>%
+  group_by(common_name) %>%
+  summarize(total = sum(count)) %>%
+  arrange(total)
+
+ss <- d %>%
+  mutate(common_name = factor(common_name,
+                              levels = abundance$common_name))
+
+g <- ggplot(ss %>% 
+              mutate(native = factor(native, 
+                                     levels=c("Native (planted)",
+                                              "Native",
+                                              "Introduced/weed"))), 
+            aes(year, common_name, fill = count)) +
+  geom_tile() + 
+  # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
+  facet_grid(native ~ site, scales="free_y", space="free_y") + 
+  scale_fill_gradient(low = "cornsilk", high = "darkgreen", trans = "log") +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle=90),
+        axis.text.y = element_text(hjust=0)) +
+  labs(x = "", y = "") 
+
+g
+```
+
+```{r bee_table, dependson="bee_plants_data",eval=FALSE}
+ss <- d %>%
+  group_by(year, site, common_name, native) %>%
+  summarize(density = mean(total)) %>%
+  mutate(native = factor(native, levels=c("Native (planted)","Native",
+                                          "Introduced/weed"))) %>%
+  
+  # cra1 has a 70m transect, so adjust to 100m density
+  mutate(density = ifelse(site == "cra1", density/.7, density)) %>%
+  unite("site_year", site, year, sep="@") %>%
+  spread(site_year, density, fill = NA) %>%
+  arrange(native, common_name) %>%
+  rename(`Common name` = "common_name")
+
+n_native  = sum(grepl("Native",  ss$native))
+n_planted = sum(grepl("planted", ss$native))
+ss$native <- NULL
+
+# Fix column names and create additional row
+nc <- ncol(ss)
+tmp <- data.frame(nms = names(ss)[-1]) %>%
+  tidyr::separate(nms, into=c("row1", "row2"), sep="@")
+names(ss)[-1] <- tmp$row2
+new_row <- paste(" & \\multicolumn{4}{c|}{",unique(tmp$row1),"}", 
+                 collapse="")
+new_row <- gsub("_", " ", new_row)
+new_row <- paste(new_row, "\\\\", collapse=" ")
+
+tab <- ss %>%
+  xtable(
+    digits = 0,
+    align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
+    caption="Total numbers of bees on each plant species.",
+    label = "t:bee_plant") %>%
+  print(
+    # file = "include/nectar_yearly.tex",
+    include.rownames = FALSE, 
+    # NA.string="na",
+    add.to.row = list(pos = list(-1), 
+                      command = new_row),
+    caption.placement = "top",
+    size="\\small",
+    # floating.environment = "sidewaystable",
+    hline.after = c(-1,0,n_planted,n_native,n_native,nrow(ss)),
+    comment = FALSE
+  ) 
+```
+
