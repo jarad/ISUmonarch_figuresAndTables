@@ -1,11 +1,12 @@
 ---
-title: "Summary Statistics: Establishing Monarch Butterfly Breeding Habitat on Iowa Swine Production Sites"
-author: "Jarad Niemi, Seth Appelgate, and Nehemias Ulloa"
+title: ""
+author: ""
 date: "`r Sys.Date()`"
 header-includes:
   - \usepackage{fullpage}
   - \usepackage{rotating}
   - \usepackage{caption} 
+  - \usepackage{float}
   - \captionsetup[table]{skip=10pt}
 output: 
   pdf_document:
@@ -20,7 +21,8 @@ opts_chunk$set(echo     = draft,
                results  = 'asis',
                message  = draft,
                warnings = draft,
-               cache    = TRUE)
+               cache    = TRUE,
+               fig.pos  = "H")
 ```
 
 ```{r packages}
@@ -82,9 +84,7 @@ sites <- unique(ISUmonarch::transect %>%
 
 
 
-
-
-# Robel
+# Robel Pole Survey
 
 ```{r robel_data, dependson="sites"}
 d <- robel %>% 
@@ -117,9 +117,10 @@ g_monthly <- ggplot(s, aes(year, height,
               color = Month)) +
   geom_line() + 
   facet_grid(. ~ site) + 
-  labs(x = "Year", y = "Height (cm)", title="Mean Robel Heights by Month") + 
+  labs(x = "", y = "Height (cm)", title="Monthly Average Robel Pole Heights") + 
   theme_bw() + 
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
   scale_color_manual(values = month_col)
 
 g_monthly
@@ -151,9 +152,9 @@ tab_yearly <- s_yearly %>%
 g_yearly <- ggplot(s_yearly, aes(year, height, color = site)) +
   geom_line() + 
   # facet_grid(site ~ .) + 
-  labs(x = "Year", 
+  labs(x = "", 
        y = "Height (cm)",
-       title = "Mean Robel Heights") + 
+       title = "Yearly Average Robel Pole Heights") + 
   scale_color_manual(values = site_color) +
   theme_bw() +
   theme(legend.position = "bottom") 
