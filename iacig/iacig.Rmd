@@ -3,10 +3,11 @@ title: ""
 author: ""
 date: "`r Sys.Date()`"
 header-includes:
-  - \usepackage{fullpage}
   - \usepackage{rotating}
   - \usepackage{caption} 
   - \usepackage{float}
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
   - \captionsetup[table]{skip=10pt}
 output: 
   pdf_document:
@@ -22,7 +23,7 @@ opts_chunk$set(echo     = draft,
                message  = draft,
                warnings = draft,
                cache    = TRUE,
-               fig.pos  = "H")
+               fig.pos  = "b!")
 ```
 
 ```{r packages}
@@ -84,7 +85,7 @@ sites <- unique(ISUmonarch::transect %>%
 
 
 
-# Robel Pole Survey
+\lhead{Robel Pole Survey}
 
 ```{r robel_data, dependson="sites"}
 d <- robel %>% 
@@ -110,14 +111,51 @@ s <- d %>%
   summarize(height = mean(height))
 ```
 
-```{r, robel_monthly_plot, dependson=c("robel_monthly","palette"),fig.height=4,fig.cap="Plot of monthly average vegetation height (cm) from 2016 through 2019. "}
+```{r, robel_monthly_table, dependson=c("robel_monthly")}
+ss <- s %>%
+  unite("site_year", site, year, sep="@") %>%
+  spread(site_year, height, fill = NA) 
+
+# Fix column names and create additional row
+nc <- ncol(ss)
+tmp <- data.frame(nms = names(ss)[-1]) %>%
+  tidyr::separate(nms, into=c("row1", "row2"), sep="@")
+names(ss)[-1] <- tmp$row2
+new_row <- paste(" & \\multicolumn{4}{c|}{",unique(tmp$row1),"}", 
+                 collapse="")
+new_row <- gsub("_", " ", new_row)
+new_row <- paste(new_row, "\\\\", collapse=" ")
+
+
+# Write table to file
+tab <- ss %>%
+  xtable(
+    digits = 0,
+    align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
+    caption="Monthly average vegetation height (cm) from 2016 through 2019.",
+    label = "t:daubenmire_monthly") %>%
+  print(
+    # file = "include/daubenmire_monthly.tex",
+    include.rownames = FALSE, 
+    # NA.string="na",
+    add.to.row = list(pos = list(-1), 
+                      command = new_row),
+    caption.placement = "top",
+    size="\\small",
+    # floating.environment = "sidewaystable",
+    hline.after = c(-1,0,3),
+    comment = FALSE
+    ) 
+```
+
+```{r, robel_monthly_plot, dependson=c("robel_monthly","palette"),fig.height=4,fig.cap="Monthly average vegetation height (cm) from 2016 through 2019. "}
 g_monthly <- ggplot(s, aes(year, height, 
               linetype = Month, 
               group = Month,
               color = Month)) +
   geom_line() + 
   facet_grid(. ~ site) + 
-  labs(x = "", y = "Height (cm)", title="Monthly Average Robel Pole Heights") + 
+  labs(x = "", y = "Height (cm)", title="Monthly Average Vegetation Heights") + 
   theme_bw() + 
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90)) +
@@ -148,13 +186,13 @@ tab_yearly <- s_yearly %>%
     comment = FALSE)
 ```
 
-```{r robel_yearly_plot, dependson=c("robel_yearly","palette"),fig.height=4,fig.cap="Plot of yearly average vegetation height (cm) from 2016 through 2019."}
+```{r robel_yearly_plot, dependson=c("robel_yearly","palette"),fig.height=4,fig.cap="Yearly average vegetation height (cm) from 2016 through 2019."}
 g_yearly <- ggplot(s_yearly, aes(year, height, color = site)) +
   geom_line() + 
   # facet_grid(site ~ .) + 
   labs(x = "", 
        y = "Height (cm)",
-       title = "Yearly Average Robel Pole Heights") + 
+       title = "Yearly Average Vegetation Heights") + 
   scale_color_manual(values = site_color) +
   theme_bw() +
   theme(legend.position = "bottom") 
@@ -164,7 +202,7 @@ g_yearly
 
 
 
-```{r robel_write_plots, dependson="robel_monthly_plot"}
+```{r robel_write_plots, dependson=c("robel_monthly_plot","robel_yearly_plot")}
 ggsave(plot = g_monthly,
        filename = "include/robel_monthly.png")
 
@@ -178,7 +216,7 @@ ggsave(plot = g_yearly,
 
 \clearpage
 
-# Daubenmire Survey
+\lhead{Daubenmire Survey}
 
 ```{r daubenmire_data, dependson="sites"}
 d <- cover %>% 
@@ -264,7 +302,7 @@ tab <- ss %>%
 ```
 
 
-```{r daubenmire_yearly_plot, dependson=c("daubenmire_yearly","palette"),fig.cap="Plot of yearly average percent cover of forbs, milkweed, warm season grasses, cool season grasses, woody species, and bare ground from 2016 – 2019."}
+```{r daubenmire_yearly_plot, dependson=c("daubenmire_yearly","palette"),fig.cap="Yearly average percent cover of forbs, milkweed, warm season grasses, cool season grasses, woody species, and bare ground from 2016 – 2019."}
 g_yearly <- ggplot(s, aes(year, percentage, color=class, linetype = class)) +
   geom_line() + 
   facet_grid(. ~ site, scales = "free_y") +
@@ -279,7 +317,7 @@ g_yearly
 ```
 
 
-```{r daubenmire_yearly_plot_by_class, dependson=c("daubenmire_yearly","palette"), fig.height=8, fig.cap="Need a caption"}
+```{r daubenmire_yearly_plot_by_class, dependson=c("daubenmire_yearly","palette"), fig.height=8, fig.cap="Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 (based on results for Daubenmire surveys; see Table 2 and Figure 3). "}
 g_yearly_by_class <- ggplot(s, aes(year, percentage,
                    fill = class, 
                    # linetype = class, 
@@ -311,8 +349,7 @@ ggsave(filename = "include/daubenmire_yearly_by_class.png",
 
 \clearpage
 
-# Nectar Plant Survey
-
+\lhead{Nectar Plant Survey}
 
 ```{r nectar_data, dependson="sites"}
 d <- nectar %>% 
@@ -347,7 +384,8 @@ d <- nectar %>%
 s1 <- d %>% 
   group_by(year, site, month) %>%
   summarize(total = mean(count)) %>%
-  mutate(native = "Combined")
+  mutate(native = "Combined",
+         total = ifelse(site == "Crawfordsville", total/.7, total))
 
 s2 <- d %>% 
   mutate(native = recode(native, 
@@ -356,6 +394,7 @@ s2 <- d %>%
                          `Introduced/weed`  = "Introduced")) %>%
   group_by(year, site, month, native) %>%
   summarize(total = mean(count)) %>%
+  mutate(total = ifelse(site == "Crawfordsville", total/.7, total)) %>%
 
   # Hack to add appropriate zeros
   bind_rows(tibble(site = rep(c("Boyd 1","Boyd 2"), each = 4),
@@ -378,8 +417,8 @@ g <- ggplot(s_both, aes(year, total,
               linetype = month, group = month, color = month)) +
   geom_line() + 
   facet_grid(native ~ site, scales="free_y") + 
-  labs(x = "Year", y = "Average Inflorescence (count/m2)", 
-       title = "Nectar Plant Survey",
+  labs(x = "Year", y = "Average Inflorescence (count/100m2)", 
+       title = "Average Monthly Inflorescence",
        linetype = "Month", color = "Month") +
   # scale_y_log10() +
   scale_color_manual(values = month_col) + 
@@ -443,11 +482,11 @@ ss <- s %>%
                                           "Introduced/weed"))) %>%
   
   # cra1 has a 70m transect, so adjust to 100m density
-  mutate(density = ifelse(site == "cra1", density/.7, density)) %>%
+  mutate(density = ifelse(site == "Crawfordsville", density/.7, density)) %>%
   unite("site_year", site, year, sep="@") %>%
   spread(site_year, density, fill = NA) %>%
   arrange(native, common_name) %>%
-  rename(`Common name` = "common_name")
+  rename(`Plant name` = "common_name")
 
 n_native  = sum(grepl("Native",  ss$native))
 n_planted = sum(grepl("planted", ss$native))
@@ -467,7 +506,7 @@ tab <- ss %>%
   xtable(
     digits = 0,
     align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-    caption="Average inflourescence (count/100m2) across all rounds. Species above the double line are native (planted or extant) and species above single line were planted.",
+    caption="Average inflourescence (count/100m2) across all rounds by plant classification: native (planted or extant) above double line, planted above single line, and introduced/weed below double line.",
     label = "t:nectar") %>%
   print(
     # file = "include/nectar_yearly.tex",
@@ -518,7 +557,7 @@ g
 
 \clearpage
 
-# Monarch
+\lhead{Monarch Survey}
 
 ```{r monarch_data, dependson="sites"}
 d <- monarch %>% 
@@ -607,7 +646,7 @@ g <- ggplot(d %>%
   geom_line() + 
   facet_grid(Monarch ~ site, scales="free_y") + 
   labs(x = "Year", y = "Count",
-       title = "Yearly Monarch Adults, Eggs, Larvae, and Ramets") +
+       title = "Yearly Monarch Adults, Eggs, Larvae, and Milkweed Ramets") +
   # scale_y_log10() + 
   theme_bw() +
   theme(legend.position = "bottom",
@@ -626,7 +665,7 @@ ggsave(file = "include/monarch_yearly.png",
 
 \clearpage
 
-# Bee Survey
+\lhead{Bee Survey}
 
 ```{r bee_data, dependson="sites"}
 d <- ISUmonarch::bee %>% 
@@ -732,7 +771,7 @@ d <- ISUmonarch::bee_plants %>%
   ungroup() %>%
   
   rename(common_name = `Nectar Plant Species`) %>%
-  left_join(species, by="common_name") %>%
+  left_join(ISUmonarch::species, by="common_name") %>%
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native (extant)",
@@ -746,7 +785,7 @@ d <- ISUmonarch::bee_plants %>%
 ```
 
 
-```{r bee_plant_heatmap, dependson="bee_plants_data",fig.height=4,fig.cap="Plant usage by bees."}
+```{r bee_plant_heatmap, dependson="bee_plants_data",fig.height=4,fig.cap="Plant usage by bees by classification: native (planted), native (extant), and introduced/weed."}
 # Determine sort order 
 abundance <- d %>%
   group_by(common_name) %>%
@@ -758,10 +797,14 @@ ss <- d %>%
                               levels = abundance$common_name))
 
 g <- ggplot(ss %>% 
-              mutate(native = factor(native, 
+              mutate(
+                native = recode(native, 
+                                `Native (extant)` = "Native",
+                                `Introduced/weed` = "Introduced"),
+                native = factor(native, 
                                      levels=c("Native (planted)",
-                                              "Native (extant)",
-                                              "Introduced/weed"))), 
+                                              "Native",
+                                              "Introduced"))), 
             aes(year, common_name, fill = count)) +
   geom_tile() + 
   # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
@@ -776,19 +819,26 @@ g <- ggplot(ss %>%
 g
 ```
 
-```{r bee_plant_table, dependson="bee_plants_data",eval=FALSE}
+```{r bee_plant_table, dependson="bee_plants_data", eval=TRUE}
 ss <- d %>%
-  group_by(year, site, common_name, native) %>%
-  summarize(density = mean(total)) %>%
-  mutate(native = factor(native, levels=c("Native (planted)","Native (extant)",
-                                          "Introduced/weed"))) %>%
+  group_by(year, site, common_name, native, `Bee Species`) %>%
+  summarize(total = sum(count)) %>%
+  ungroup %>%
+  tidyr::complete(nesting(common_name, native), year, site, `Bee Species`, fill = list(total=NA)) %>%
+  mutate(native = factor(native, 
+                         levels=c("Native (planted)",
+                                  "Native (extant)",
+                                  "Introduced/weed"))) %>%
   
-  # cra1 has a 70m transect, so adjust to 100m density
-  mutate(density = ifelse(site == "cra1", density/.7, density)) %>%
+  # cra1 has a 70m transect, so adjust to 100m total
+  mutate(total = ifelse(site == "cra1", total/.7, total),
+         `Bee Species` = gsub(" bee","",`Bee Species`)) %>%
   unite("site_year", site, year, sep="@") %>%
-  spread(site_year, density, fill = NA) %>%
-  arrange(native, common_name) %>%
-  rename(`Common name` = "common_name")
+  spread(site_year, total, fill = NA) %>%
+  arrange(`Bee Species`, native, common_name) %>%
+  select(`Bee Species`, native, common_name, everything()) %>%
+  rename(`Plant name` = "common_name",
+         `Bee type` = "Bee Species") 
 
 n_native  = sum(grepl("Native",  ss$native))
 n_planted = sum(grepl("planted", ss$native))
@@ -796,25 +846,25 @@ ss$native <- NULL
 
 # Fix column names and create additional row
 nc <- ncol(ss)
-tmp <- data.frame(nms = names(ss)[-1]) %>%
+tmp <- data.frame(nms = names(ss)[-c(1:2)]) %>%
   tidyr::separate(nms, into=c("row1", "row2"), sep="@")
-names(ss)[-1] <- tmp$row2
+names(ss)[-c(1:2)] <- tmp$row2
 new_row <- paste(" & \\multicolumn{4}{c|}{",unique(tmp$row1),"}", 
                  collapse="")
 new_row <- gsub("_", " ", new_row)
-new_row <- paste(new_row, "\\\\", collapse=" ")
+new_row <- paste("&", new_row, "\\\\", collapse=" ")
 
 tab <- ss %>%
   xtable(
     digits = 0,
-    align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-    caption="Total numbers of bees on each plant species.",
+    align = paste("rll|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
+    caption="Bee plant usage by bee type and plant classification: native (planted or extant) above double line, planted above single line, and introduced/weed below double line.",
     label = "t:bee_plant") %>%
   print(
     # file = "include/nectar_yearly.tex",
     include.rownames = FALSE, 
     # NA.string="na",
-    add.to.row = list(pos = list(-1), 
+    add.to.row = list(pos = list(-1),
                       command = new_row),
     caption.placement = "top",
     size="\\small",
