@@ -30,7 +30,6 @@ opts_chunk$set(echo     = draft,
 library("tidyverse")
 library("ISUmonarch")
 library("xtable")
-options(xtable.comment = FALSE)
 ```
 
 ```{r sessionInfo, results='markup', eval=draft}
@@ -317,7 +316,7 @@ g_yearly
 ```
 
 
-```{r daubenmire_yearly_plot_by_class, dependson=c("daubenmire_yearly","palette"), fig.height=8, fig.cap="Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 (based on results for Daubenmire surveys; see Table 2 and Figure 3). "}
+```{r daubenmire_yearly_cumulative_plot, dependson=c("daubenmire_yearly","palette"), fig.height=8, fig.cap="Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 (based on results for Daubenmire surveys; see Table 2 and Figure 3). "}
 g_yearly_by_class <- ggplot(s, aes(year, percentage,
                    fill = class, 
                    # linetype = class, 
@@ -334,13 +333,14 @@ g_yearly_by_class
 ```
 
 
-```{r daubenmire_write_plots, dependson=c("daubenmire_yearly_plot","daubenmire_yearly_plot_by_class")}
+
+```{r daubenmire_write_plots, dependson=c("daubenmire_yearly_plot","daubenmire_yearly_cumulative_plot")}
 ggsave(filename = "include/daubenmire_yearly.png",
        plot = g_yearly,
        width = 6, 
        height = 4)
 
-ggsave(filename = "include/daubenmire_yearly_by_class.png",
+ggsave(filename = "include/daubenmire_yearly_cumulative.png",
        plot = g_yearly_by_class,
        width = 6, 
        height = 6)
@@ -352,7 +352,7 @@ ggsave(filename = "include/daubenmire_yearly_by_class.png",
 \lhead{Nectar Plant Survey}
 
 ```{r nectar_data, dependson="sites"}
-d <- nectar %>% 
+d <- ISUmonarch::nectar %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, `Nectar Plant Species`, count) %>%
   rename(site = siteID) %>%
@@ -360,13 +360,13 @@ d <- nectar %>%
          month = factor(month, levels = c("June","July","August")),
          
          site = recode(site, 
-                         byd1 = "Boyd 1", 
-                         byd2 = "Boyd 2",
-                         cra1 = "Crawfordsville",
-                         uth3 = "Uthe 3")) %>%
+                       byd1 = "Boyd 1", 
+                       byd2 = "Boyd 2",
+                       cra1 = "Crawfordsville",
+                       uth3 = "Uthe 3")) %>%
   
   rename(common_name = `Nectar Plant Species`) %>%
-  left_join(species, by="common_name") %>%
+  left_join(ISUmonarch::species, by="common_name") %>%
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native (extant)",
@@ -380,7 +380,7 @@ d <- nectar %>%
 ```
 
 
-```{r nectar_yearly_data, dependson="nectar_data"}
+```{r nectar_monthly_data, dependson="nectar_data"}
 s1 <- d %>% 
   group_by(year, site, month) %>%
   summarize(total = mean(count)) %>%
@@ -412,7 +412,7 @@ s_both <- bind_rows(s1,s2) %>%
 ```
 
 
-```{r nectar_yearly_plot, dependson="nectar_yearly_data",fig.cap="Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site."}
+```{r nectar_monthly_plot, dependson="nectar_monthly_data",fig.cap="Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site."}
 g <- ggplot(s_both, aes(year, total, 
               linetype = month, group = month, color = month)) +
   geom_line() + 
@@ -431,8 +431,8 @@ g
 
 
 
-```{r, nectar_write_plots, dependson="nectar_yearly_plot"}
-ggsave(file = "include/nectar_yearly.png",
+```{r, nectar_write_plots, dependson="nectar_monthly_plot"}
+ggsave(file = "include/nectar_monthly.png",
        plot = g,
        width = 6, 
        height = 4)
@@ -449,7 +449,7 @@ s <- d %>%
 ```  
 
 
-```{r nectar_ratio, dependson="nectar_by_species", eval=FALSE}
+```{r nectar_ratio, dependson="nectar_by_species", eval=TRUE}
 # ggplot(s, aes(year, total, 
 #               color = common_name,
 #               linetype = native,
@@ -463,14 +463,69 @@ s <- d %>%
 
 ss <- s %>%
   group_by(year, site, common_name, native) %>%
-  summarize(total = sum(total)) 
+  summarize(total = sum(total)) %>%
   spread(year, total, fill = 0) %>%
-  mutate(log_ratio = log10(`2019`+1) - log10(`2018`+1) ,
-         log_ratio = round(log_ratio)) %>% 
-  arrange(native, log_ratio, common_name, site)
+  mutate(log_ratio = log10(`2019`+1) - log10(`2018`+1)) %>% 
+  # arrange(native, log_ratio, common_name, site) %>%
+  select(site, common_name, native, log_ratio) %>%
+  spread(site, log_ratio, fill=NA) 
 
 ss %>% write_csv("include/nectar_ratio.csv")
 ```
+
+
+```{r, nectar_ratio_by_mean_ratio, dependson="nectar_ratio", eval=TRUE}
+ss %>%
+  arrange(
+    -rowMeans(cbind(`Boyd 1`,`Boyd 2`,Crawfordsville,`Uthe 3`), na.rm=TRUE),
+    common_name) %>%
+  select(native, common_name, everything()) %>%
+  rename(`Common name` = common_name,
+         `Native status` = native) %>%
+  
+  xtable(
+    caption = "Logarithm of the ratio of inflorescence counts (+1) from 2019  to 2018 arranged by average across sites,
+    thus negative values indicate a reduction while positive values indicate an increase. Missing values had no observations at that site for either 2018 or 2019.",
+    align = "lll|rrrr",
+    digits = 1
+  ) %>%
+  
+  print(
+    include.rownames = FALSE,
+    caption.placement = "top",
+    comment = FALSE
+  )
+```
+
+```{r, nectar_ratio_by_native, dependson="nectar_ratio", eval=TRUE}
+n_native  = sum(grepl("Native",  ss$native))
+n_planted = sum(grepl("planted", ss$native))
+
+ss %>%
+  mutate(native = factor(native, levels = c("Native (planted)",
+                                            "Native (extant)",
+                                            "Introduced/weed"))) %>%
+  arrange(
+    native,
+    -rowMeans(cbind(`Boyd 1`,`Boyd 2`,Crawfordsville,`Uthe 3`), na.rm=TRUE),
+    common_name) %>%
+  select(-native) %>%
+  rename(`Common name` = common_name) %>%
+  
+  xtable(
+    caption = "Logarithm of the ratio of inflorescence counts (+1) from 2019 over 2018 arranged by mean ratio across sites within each native grouping: native above double line and planted above single line. Negative values indicate a reduction while positive values indicate an increase. Missing values had no observations at that site for either 2018 or 2019.",
+    align = "ll|rrrr",
+    digits = 1
+  ) %>%
+  
+  print(
+    include.rownames = FALSE,
+    caption.placement = "top",
+    hline.after = c(-1,0,n_planted,n_native,n_native,nrow(ss)),
+    comment = FALSE
+  )
+```
+
 
 
 
@@ -554,6 +609,13 @@ g <- ggplot(ss %>%
 g
 ```
 
+```{r, nectar_write_heatmap, dependson="nectar_heatmap"}
+ggsave(file = "include/nectar_heatmap.png",
+       plot = g,
+       width = 6, 
+       height = 8)
+```
+
 
 \clearpage
 
@@ -633,6 +695,7 @@ caption = "Yearly observed monarch eggs, larvae (by milkweed species), adults du
   print(
     # file = "monarch.tex",
     include.rownames = FALSE,
+    caption.placement = "top",
     add.to.row = list(pos = list(-1), command = new_row),
     hline.after = c(-1,0,2,6,10,14),
     comment = FALSE)
@@ -819,23 +882,34 @@ g <- ggplot(ss %>%
 g
 ```
 
+```{r write_bee_plant_heatmap, dependson="bee_plant_heatmap"}
+ggsave(file = "include/bee_plant_heatmap.png",
+       plot = g,
+       width = 6, 
+       height = 4)
+```
+
+
+
 ```{r bee_plant_table, dependson="bee_plants_data", eval=TRUE}
 ss <- d %>%
   group_by(year, site, common_name, native, `Bee Species`) %>%
   summarize(total = sum(count)) %>%
   ungroup %>%
-  tidyr::complete(nesting(common_name, native), year, site, `Bee Species`, fill = list(total=NA)) %>%
+  tidyr::complete(nesting(common_name, native), year, site, `Bee Species`, 
+                  fill = list(total=NA)) %>%
   mutate(native = factor(native, 
                          levels=c("Native (planted)",
                                   "Native (extant)",
-                                  "Introduced/weed"))) %>%
-  
-  # cra1 has a 70m transect, so adjust to 100m total
-  mutate(total = ifelse(site == "cra1", total/.7, total),
+                                  "Introduced/weed")),
          `Bee Species` = gsub(" bee","",`Bee Species`)) %>%
   unite("site_year", site, year, sep="@") %>%
   spread(site_year, total, fill = NA) %>%
-  arrange(`Bee Species`, native, common_name) %>%
+  
+  # Remove rows that are entirely NA
+  filter_at(vars(-native, -`Bee Species`, -common_name), any_vars(!is.na(.))) %>%
+  
+  arrange(native, `Bee Species`, common_name) %>%
   select(`Bee Species`, native, common_name, everything()) %>%
   rename(`Plant name` = "common_name",
          `Bee type` = "Bee Species") 
