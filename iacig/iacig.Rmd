@@ -468,7 +468,13 @@ ss <- s %>%
   mutate(log_ratio = log10(`2019`+1) - log10(`2018`+1)) %>% 
   # arrange(native, log_ratio, common_name, site) %>%
   select(site, common_name, native, log_ratio) %>%
-  spread(site, log_ratio, fill=NA) 
+  spread(site, log_ratio, fill=NA) %>%
+  
+  # Manually filter species with only 1 site with data and
+  # ratio is close to zero
+  filter(!(common_name %in% c("blue wild indigo","canada goldenrod",
+                              "common evening primrose","prostrate vervain",
+                              "hawkweed","smartweed","common milkweed")))
 
 ss %>% write_csv("include/nectar_ratio.csv")
 ```
