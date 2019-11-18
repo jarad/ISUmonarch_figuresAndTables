@@ -677,6 +677,10 @@ d <- monarch %>%
 
 ```{r monarch_table, dependson="monarch_data"}
 ss <- d %>%
+  mutate(count = ifelse(year == 2016 & 
+                          (grepl("butterfly",Monarch) | grepl("common",Monarch) | grepl("swamp",Monarch)) & 
+                          count == 0,
+                        NA, count)) %>%
   unite("site_year", site, year, sep="@") %>%
   spread(site_year, count, fill = NA) 
 
@@ -697,9 +701,10 @@ ss %>%
   xtable(
     digits = 0,
     align = paste("rl|",paste(rep("rrrr|",floor(nc/4)),collapse=""),sep="",collapse=""),
-caption = "Yearly observed monarch eggs, larvae (by milkweed species), adults during the pollard walk, total adults during a site visit and total number of milkweed ramets (butterfly, common and swamp) and combined.") %>%
+caption = "Yearly total observed monarch eggs, larvae and adults.  In 2016, during each of three sampling periods per site per year, larvae and eggs were sampled from up to 20 milkweed ramets (all species combined, a maximum of 60 ramets sampled per year per site).  In 2017, 2018, and 2019, eggs and larvae were sampled from up to 10 milkweed ramets per milkweed species per site visit (i.e., a maximum of 30 ramets per species per site visit; and, therefore, 90 total ramets per year).  The number of adults counted during the Pollard walk (survey) were combined with counts observed during the total length of a site visit to provide the total adult count.") %>%
   print(
     # file = "monarch.tex",
+    NA.string = "",
     include.rownames = FALSE,
     caption.placement = "top",
     add.to.row = list(pos = list(-1), command = new_row),
