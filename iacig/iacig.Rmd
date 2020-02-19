@@ -9,10 +9,15 @@ header-includes:
   - \usepackage{fancyhdr}
   - \pagestyle{fancy}
   - \captionsetup[table]{skip=10pt}
+  - \setcounter{table}{0}
+  - \renewcommand{\thetable}{I\arabic{table}}
+  - \renewcommand{\thefigure}{I\arabic{figure}}
 output: 
   pdf_document:
     fig_caption: TRUE
 ---
+
+\lhead{Appendix I}
 
 ```{r setup, purl=FALSE, echo=FALSE}
 draft = FALSE
@@ -84,7 +89,7 @@ sites <- unique(ISUmonarch::transect %>%
 
 
 
-\lhead{Robel Pole Survey}
+\rhead{Robel Pole Survey}
 
 ```{r robel_data, dependson="sites"}
 d <- robel %>% 
@@ -215,7 +220,7 @@ ggsave(plot = g_yearly,
 
 \clearpage
 
-\lhead{Daubenmire Survey}
+\rhead{Daubenmire Survey}
 
 ```{r daubenmire_data, dependson="sites"}
 d <- cover %>% 
@@ -349,7 +354,7 @@ ggsave(filename = "include/daubenmire_yearly_cumulative.png",
 
 \clearpage
 
-\lhead{Nectar Plant Survey}
+\rhead{Nectar Plant Survey}
 
 ```{r nectar_data, dependson="sites"}
 d <- ISUmonarch::nectar %>% 
@@ -625,7 +630,7 @@ ggsave(file = "include/nectar_heatmap.png",
 
 \clearpage
 
-\lhead{Monarch Survey}
+\rhead{Monarch Survey}
 
 ```{r monarch_data, dependson="sites"}
 d <- monarch %>% 
@@ -739,7 +744,7 @@ ggsave(file = "include/monarch_yearly.png",
 
 \clearpage
 
-\lhead{Bee Survey}
+\rhead{Bee Survey}
 
 ```{r bee_data, dependson="sites"}
 d <- ISUmonarch::bee %>% 
