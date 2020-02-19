@@ -33,7 +33,7 @@ opts_chunk$set(echo     = draft,
 
 ```{r packages}
 library("tidyverse")
-library("ISUmonarch")
+library("HabitatRestoration")
 library("xtable")
 ```
 
@@ -81,7 +81,7 @@ site_color <- c("Boyd 1" = ISU_primary_palette[4],
 
 
 ```{r sites}
-sites <- unique(ISUmonarch::transect %>% 
+sites <- unique(HabitatRestoration::transect %>% 
                  filter(grant=="iacig") %>%
                  filter(siteID %in% c("byd1","byd2","cra1","uth3")) %>%
                  pull(siteID) %>% as.character())
@@ -92,7 +92,7 @@ sites <- unique(ISUmonarch::transect %>%
 \rhead{Robel Pole Survey}
 
 ```{r robel_data, dependson="sites"}
-d <- robel %>% 
+d <- HabitatRestoration::robel %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, height, censored) %>%
   rename(site = siteID) %>%
@@ -223,7 +223,7 @@ ggsave(plot = g_yearly,
 \rhead{Daubenmire Survey}
 
 ```{r daubenmire_data, dependson="sites"}
-d <- cover %>% 
+d <- HabitatRestoration::cover %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, section, class, percentage) %>%
   rename(site = siteID) %>%
@@ -357,7 +357,7 @@ ggsave(filename = "include/daubenmire_yearly_cumulative.png",
 \rhead{Nectar Plant Survey}
 
 ```{r nectar_data, dependson="sites"}
-d <- ISUmonarch::nectar %>% 
+d <- HabitatRestoration::nectar %>% 
   filter(siteID %in% sites) %>%
   select(siteID, year, month, `Nectar Plant Species`, count) %>%
   rename(site = siteID) %>%
@@ -371,7 +371,7 @@ d <- ISUmonarch::nectar %>%
                        uth3 = "Uthe 3")) %>%
   
   rename(common_name = `Nectar Plant Species`) %>%
-  left_join(ISUmonarch::species, by="common_name") %>%
+  left_join(HabitatRestoration::species, by="common_name") %>%
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native (extant)",
@@ -633,7 +633,7 @@ ggsave(file = "include/nectar_heatmap.png",
 \rhead{Monarch Survey}
 
 ```{r monarch_data, dependson="sites"}
-d <- monarch %>% 
+d <- HabitatRestoration::monarch %>% 
   filter(siteID %in% sites,
          type != "palmer amaranth") %>%
   rename(site = siteID) %>%
@@ -747,9 +747,9 @@ ggsave(file = "include/monarch_yearly.png",
 \rhead{Bee Survey}
 
 ```{r bee_data, dependson="sites"}
-d <- ISUmonarch::bee %>% 
+d <- HabitatRestoration::bee %>% 
   ungroup() %>%
-  left_join(ISUmonarch::transect %>% select(transectID, siteID), 
+  left_join(HabitatRestoration::transect %>% select(transectID, siteID), 
             by = "transectID") %>%
   select(-transectID) %>%
   filter(siteID %in% sites) %>%
@@ -824,9 +824,9 @@ ggsave(file = "include/bee_yearly.png",
 
 
 ```{r bee_plants_data, dependson="sites"}
-d <- ISUmonarch::bee_plants %>% 
+d <- HabitatRestoration::bee_plants %>% 
   ungroup() %>%
-  left_join(ISUmonarch::transect %>% select(transectID, siteID),
+  left_join(HabitatRestoration::transect %>% select(transectID, siteID),
             by = "transectID") %>%
   select(-transectID) %>%
   filter(siteID %in% sites,
@@ -850,7 +850,7 @@ d <- ISUmonarch::bee_plants %>%
   ungroup() %>%
   
   rename(common_name = `Nectar Plant Species`) %>%
-  left_join(ISUmonarch::species, by="common_name") %>%
+  left_join(HabitatRestoration::species, by="common_name") %>%
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native (extant)",
