@@ -84,8 +84,23 @@ names(site_color) <- c("all1", "all2", "arm1", "arm2", "ber1", "ber3", "cre1",
 ```{r sites}
 sites <- unique(HabitatRestoration::transect %>% 
                  filter(grant=="ncig") %>%
-                 # filter(!(siteID %in% "sie1")) %>%
+                 filter(!(siteID %in% "sie1")) %>%
                  pull(siteID) %>% as.character())
+
+sites <- bind_rows(tibble(region = "Northwest Iowa Plains",
+                          site = c("all1","all2","prd1","prd2","sut2"),
+                          success = c(F,F,T,T,T),
+                          color = ISU_secondary_palette[1:5]),
+                   tibble(region = "Des Moines Lobe",
+                          site = c("ber1","ber3","dun2","dun3","pio1","pio2","nor1"),
+                          success = c(F,F,T,T,T,T,T),
+                          color = ISU_secondary_palette[1:7]),
+                   tibble(region = "Southern Iowa Drift Plains",
+                          site = c("arm1","arm2","nkn1","nkn2","cre1","gro1","gro2","ver1"),
+                          success = c(T,T,T,T,T,T,T,F),
+                          color = ISU_secondary_palette[1:8])) %>%
+  mutate(success = ifelse(success, "Yes","No"),
+         success = factor(success, levels = c("Yes","No")))
 ```
 
 
@@ -103,7 +118,7 @@ HabitatRestoration::robel %>% filter(censored != "not") %>% select(-observer)
 
 ```{r robel_data, dependson="sites"}
 d <- HabitatRestoration::robel %>% 
-  filter(siteID %in% sites) %>%
+  filter(siteID %in% sites$site) %>%
   select(siteID, year, month, height, censored) %>%
   rename(site = siteID) %>%
   mutate(Month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
@@ -124,7 +139,8 @@ d <- HabitatRestoration::robel %>%
 ```{r robel_monthly, dependson="robel_data"}
 s <- d %>%
   group_by(year, site, Month) %>%
-  summarize(height = mean(height))
+  summarize(height = mean(height)) %>%
+  left_join(sites, by="site")
 ```
 
 ```{r, robel_monthly_table, dependson=c("robel_monthly")}
@@ -165,19 +181,32 @@ new_row <- paste(new_row, "\\\\", collapse=" ")
 ```
 
 ```{r, robel_monthly_plot, dependson=c("robel_monthly","palette"),fig.cap="Monthly average vegetation height (cm) from 2016 through 2019. "}
-g_monthly <- ggplot(s, aes(year, height, 
-              linetype = Month, 
-              group = Month,
-              color = Month)) +
+robel_monthly_plot <- function(s, r) {
+  
+  ggplot(s %>% 
+           filter(region == r), 
+         aes(year, height, 
+             linetype = Month, 
+             group = Month,
+             color = Month)) +
   geom_line() + 
   facet_wrap( ~ site) + 
-  labs(x = "", y = "Height (cm)", title="Monthly Average Vegetation Heights") + 
+  labs(x = "", y = "Height (cm)", 
+       title=paste0("Monthly Average Vegetation Heights: ", r)) + 
   theme_bw() + 
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90)) +
   scale_color_manual(values = month_col)
+}
 
-g_monthly
+
+robel_monthly_region1 <- robel_monthly_plot(s, "Northwest Iowa Plains")
+robel_monthly_region2 <- robel_monthly_plot(s, "Des Moines Lobe")
+robel_monthly_region3 <- robel_monthly_plot(s, "Southern Iowa Drift Plains")
+
+robel_monthly_region1 
+robel_monthly_region2 
+robel_monthly_region3 
 ```
 
 
@@ -185,7 +214,8 @@ g_monthly
 ```{r robel_yearly, dependson="robel_data"}
 s_yearly <- d %>%
   group_by(year, site) %>%
-  summarize(height = mean(height))
+  summarize(height = mean(height)) %>%
+  left_join(sites, by="site")
 ```
 
 ```{r robel_yearly_table, dependson="robel_yearly"}
@@ -203,29 +233,39 @@ s_yearly <- d %>%
 ```
 
 ```{r robel_yearly_plot, dependson=c("robel_yearly","palette"),fig.height=4,fig.cap="Yearly average vegetation height (cm) from 2016 through 2019."}
-g_yearly <- ggplot(s_yearly, aes(year, height, color = site)) +
+robel_yearly_plot <- function(s, r) {
+  ggplot(s %>%
+           filter(region == r), 
+         aes(year, height, color = site, group=site, linetype = success)) +
   geom_line() + 
   # facet_grid(site ~ .) + 
   labs(x = "", 
        y = "Height (cm)",
-       title = "Yearly Average Vegetation Heights") + 
+       title = paste0("Yearly Average Vegetation Heights: ", r)) + 
   scale_color_manual(values = site_color) +
   theme_bw() +
   theme(legend.position = "bottom") 
+}
 
-g_yearly
+robel_yearly_region1 <- robel_yearly_plot(s_yearly, "Northwest Iowa Plains")
+robel_yearly_region2 <- robel_yearly_plot(s_yearly, "Des Moines Lobe")
+robel_yearly_region3 <- robel_yearly_plot(s_yearly, "Southern Iowa Drift Plains")
+
+robel_yearly_region1 
+robel_yearly_region2 
+robel_yearly_region3 
 ```
 
 
 
 ```{r robel_write_plots, dependson=c("robel_monthly_plot","robel_yearly_plot"), eval=FALSE}
-ggsave(plot = g_monthly,
-       filename = "include/robel_monthly.png",
-       width = 6, height = 4)
-
-ggsave(plot = g_yearly,
-       filename = "include/robel_yearly.png",
-       width = 6, height = 4)
+# ggsave(plot = g_monthly,
+#        filename = "include/robel_monthly.png",
+#        width = 6, height = 4)
+# 
+# ggsave(plot = g_yearly,
+#        filename = "include/robel_yearly.png",
+#        width = 6, height = 4)
 ```
 
 
@@ -237,7 +277,7 @@ ggsave(plot = g_yearly,
 
 ```{r daubenmire_data, dependson="sites"}
 d <- HabitatRestoration::cover %>% 
-  filter(siteID %in% sites) %>%
+  filter(siteID %in% sites$site) %>%
   select(siteID, year, month, section, class, percentage) %>%
   rename(site = siteID) %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
@@ -257,6 +297,7 @@ d <- HabitatRestoration::cover %>%
 s <- d %>%
   group_by(year, site, class) %>%
   summarize(percentage = mean(percentage)) %>%
+  left_join(sites, by = "site") %>%
   ungroup() %>%
   mutate(class = recode(class,
                         bare_ground   = "Bare ground",
@@ -321,48 +362,70 @@ new_row <- paste(new_row, "\\\\", collapse=" ")
 
 
 ```{r daubenmire_yearly_plot, dependson=c("daubenmire_yearly","palette"),fig.cap="Yearly average percent cover of forbs, milkweed, warm season grasses, cool season grasses, woody species, and bare ground from 2016 – 2019."}
-g_yearly <- ggplot(s, aes(year, percentage, color=class, linetype = class)) +
+daubenmire_yearly_plot <- function(s,r) {
+  ggplot(s %>%
+           filter(region == r), 
+         aes(year, percentage, color=class, linetype = class)) +
   geom_line() + 
   facet_wrap( ~ site, scales = "free_y") +
-  labs(x = "Year", y = "Average Cover", title = "Yearly Average Cover by Class") +
+  labs(x = "Year", y = "Average Cover", 
+       title = paste0("Yearly Average Cover by Class: ", r)) +
   scale_color_manual(values = class_col) +
   scale_linetype_manual(values = class_linetype) +
   theme_bw() + 
   theme(legend.position = "bottom", 
         axis.text.x = element_text(angle=90))
+}
 
-g_yearly
+daubenmire_yearly_region1 <- daubenmire_yearly_plot(s, "Northwest Iowa Plains")
+daubenmire_yearly_region2 <- daubenmire_yearly_plot(s, "Des Moines Lobe")
+daubenmire_yearly_region3 <- daubenmire_yearly_plot(s, "Southern Iowa Drift Plains")
+
+daubenmire_yearly_region1 
+daubenmire_yearly_region2 
+daubenmire_yearly_region3 
 ```
 
 
 ```{r daubenmire_yearly_cumulative_plot, dependson=c("daubenmire_yearly","palette"), fig.height=8, fig.cap="Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 (based on results for Daubenmire surveys; see Table 2 and Figure 3). "}
-g_yearly_by_class <- ggplot(s, aes(year, percentage,
-                   fill = class, 
-                   # linetype = class, 
-                   group = class)) +
-  geom_area(color=NA) + 
-  facet_wrap(~ site) +
-  labs(x = "Year", y = "Average Cover", title = "Cumulative Yearly Average Cover by Class") +
+daubenmire_yearly_cumulative_plot <- function(s,r) {
+  ggplot(s %>%
+           filter(region == r), 
+         aes(year, percentage,
+             fill = class, 
+             # linetype = class, 
+             group = class)) +
+    geom_area(color=NA) + 
+    facet_wrap(~ site) +
+  labs(x = "Year", y = "Average Cover", 
+       title = paste0("Cumulative Yearly Average Cover by Class: ", r)) +
   scale_fill_manual(values = class_col) +
   theme_bw() +
   theme(legend.position = "bottom", 
         axis.text.x = element_text(angle=90))
+}
 
-g_yearly_by_class
+daubenmire_yearly_cumulative_region1 <- daubenmire_yearly_cumulative_plot(s, "Northwest Iowa Plains")
+daubenmire_yearly_cumulative_region2 <- daubenmire_yearly_cumulative_plot(s, "Des Moines Lobe")
+daubenmire_yearly_cumulative_region3 <- daubenmire_yearly_cumulative_plot(s, "Southern Iowa Drift Plains")
+
+daubenmire_yearly_cumulative_region1 
+daubenmire_yearly_cumulative_region2 
+daubenmire_yearly_cumulative_region3 
 ```
 
 
 
 ```{r daubenmire_write_plots, dependson=c("daubenmire_yearly_plot","daubenmire_yearly_cumulative_plot"), eval=FALSE}
-ggsave(filename = "include/daubenmire_yearly.png",
-       plot = g_yearly,
-       width = 6, 
-       height = 4)
-
-ggsave(filename = "include/daubenmire_yearly_cumulative.png",
-       plot = g_yearly_by_class,
-       width = 6, 
-       height = 6)
+# ggsave(filename = "include/daubenmire_yearly.png",
+#        plot = g_yearly,
+#        width = 6, 
+#        height = 4)
+# 
+# ggsave(filename = "include/daubenmire_yearly_cumulative.png",
+#        plot = g_yearly_by_class,
+#        width = 6, 
+#        height = 6)
 ```
 
 
@@ -372,7 +435,7 @@ ggsave(filename = "include/daubenmire_yearly_cumulative.png",
 
 ```{r nectar_data, dependson="sites"}
 d <- HabitatRestoration::nectar %>% 
-  filter(siteID %in% sites) %>%
+  filter(siteID %in% sites$site) %>%
   select(siteID, year, month, `Nectar Plant Species`, count) %>%
   rename(site = siteID) %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
@@ -404,6 +467,7 @@ d <- HabitatRestoration::nectar %>%
 s1 <- d %>% 
   group_by(year, site, month) %>%
   summarize(total = mean(count)) %>%
+  left_join(sites, by = "site") %>%
   mutate(native = "Combined")
 
 # need to fix "density" for shorter transects
@@ -416,6 +480,7 @@ s2 <- d %>%
                          `Introduced/weed`  = "Introduced")) %>%
   group_by(year, site, month, native) %>%
   summarize(total = mean(count)) %>%
+  left_join(sites, by = "site") %>%
   mutate(total = ifelse(site == "Crawfordsville", total/.7, total)) 
 
 # %>%
@@ -438,29 +503,39 @@ s_both <- bind_rows(s1,s2) %>%
 
 
 ```{r nectar_monthly_plot, dependson="nectar_monthly_data",fig.height=8,fig.cap="Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site."}
-g <- ggplot(s_both, aes(year, total, 
-              linetype = month, group = month, color = month)) +
-  geom_line() + 
-  facet_grid(site ~ native, scales="free_y") + 
-  labs(x = "Year", y = "Average Inflorescence (count/100m2)", 
-       title = "Average Monthly Inflorescence",
-       linetype = "Month", color = "Month") +
+nectar_monthly_plot <- function(s,r) {
+  ggplot(s_both %>%
+           filter(region == r), 
+         aes(year, total, 
+             linetype = month, group = month, color = month)) +
+    geom_line() + 
+    facet_grid(site ~ native, scales="free_y") + 
+    labs(x = "Year", y = "Average Inflorescence (count/100m2)", 
+         title = paste0("Average Monthly Inflorescence: ", r),
+         linetype = "Month", color = "Month") +
   # scale_y_log10() +
   scale_color_manual(values = month_col) + 
   theme_bw() +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle=90))
+}
 
-g
+nectar_monthly_region1 <- nectar_monthly_plot(s, "Northwest Iowa Plains")
+nectar_monthly_region2 <- nectar_monthly_plot(s, "Des Moines Lobe")
+nectar_monthly_region3 <- nectar_monthly_plot(s, "Southern Iowa Drift Plains")
+
+nectar_monthly_region1 
+nectar_monthly_region2 
+nectar_monthly_region3 
 ```
 
 
 
 ```{r, nectar_write_plots, dependson="nectar_monthly_plot", eval=FALSE}
-ggsave(file = "include/nectar_monthly.png",
-       plot = g,
-       width = 6, 
-       height = 4)
+# ggsave(file = "include/nectar_monthly.png",
+#        plot = g,
+#        width = 6, 
+#        height = 4)
 ```
 
 
@@ -470,6 +545,7 @@ s <- d %>%
   # filter(`Nectar Plant Species` != "white clover") %>%
   group_by(year, site, month, common_name, native) %>%
   summarize(total = sum(count)) %>%
+  left_join(sites, by = "site") %>%
   ungroup()
 ```  
 
@@ -625,30 +701,39 @@ ss <- s %>%
   mutate(common_name = factor(common_name,
                               levels = abundance$common_name))
 
-g <- ggplot(ss %>% 
-              mutate(native = factor(native, 
-                                     levels=c("Native (planted)",
-                                              "Native (extant)",
-                                              "Introduced/weed"))), 
-            aes(year, common_name, fill = total)) +
-  geom_tile() + 
-  # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
-  facet_grid(native ~ site, scales="free_y", space="free_y") + 
-  scale_fill_gradient(low = "cornsilk", high = "darkgreen", trans = "log") +
-  theme_bw() +
-  theme(legend.position = "none",
-        axis.text.x = element_text(angle=90),
-        axis.text.y = element_text(hjust=0)) +
-  labs(x = "", y = "") 
+nectar_heatmap_plot <- function(ss,r) {
+  ggplot(ss %>% 
+           filter(region == r) %>%
+           mutate(native = factor(native, 
+                                  levels=c("Native (planted)",
+                                           "Native (extant)",
+                                           "Introduced/weed"))), 
+         aes(year, common_name, fill = total)) +
+    geom_tile() + 
+    # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
+    facet_grid(native ~ site, scales="free_y", space="free_y") + 
+    scale_fill_gradient(low = "cornsilk", high = "darkgreen", trans = "log") +
+    theme_bw() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle=90),
+          axis.text.y = element_text(hjust=0)) +
+    labs(x = "", y = "", title = r) 
+}
 
-g
+nectar_heatmap_region1 <- nectar_heatmap_plot(ss, "Northwest Iowa Plains")
+nectar_heatmap_region2 <- nectar_heatmap_plot(ss, "Des Moines Lobe")
+nectar_heatmap_region3 <- nectar_heatmap_plot(ss, "Southern Iowa Drift Plains")
+
+nectar_heatmap_region1 
+nectar_heatmap_region2 
+nectar_heatmap_region3 
 ```
 
 ```{r, nectar_write_heatmap, dependson="nectar_heatmap", eval=FALSE}
-ggsave(file = "include/nectar_heatmap.png",
-       plot = g,
-       width = 6, 
-       height = 8)
+# ggsave(file = "include/nectar_heatmap.png",
+#        plot = g,
+#        width = 6, 
+#        height = 8)
 ```
 
 
@@ -658,7 +743,7 @@ ggsave(file = "include/nectar_heatmap.png",
 
 ```{r monarch_data, dependson="sites"}
 d <- HabitatRestoration::monarch %>% 
-  filter(siteID %in% sites,
+  filter(siteID %in% sites$site,
          type != "palmer amaranth") %>%
   rename(site = siteID) %>%
   mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
@@ -743,25 +828,37 @@ new_row <- paste(new_row, "\\\\", collapse=" ")
 ```
 
 ```{r monarch_plot, dependson="monarch_data",fig.cap="Yearly observed monarch eggs, larvae, and adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined)."}
-g <- ggplot(d %>%
-              mutate(Monarch = sub(", total","",Monarch)) %>%
-              filter(Monarch %in% c("Adults","Eggs","Larvae","Ramets")), 
-            aes(year, count)) +
-  geom_line() + 
-  facet_grid(Monarch ~ site, scales="free_y") + 
-  labs(x = "Year", y = "Count",
-       title = "Yearly Monarch Adults, Eggs, Larvae, and Milkweed Ramets") +
-  # scale_y_log10() + 
-  theme_bw() +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle=90))
-g
+monarch_plot <- function(d,r) {
+  ggplot(d %>%
+           filter(region == r) %>%
+           mutate(Monarch = sub(", total","",Monarch)) %>%
+           filter(Monarch %in% c("Adults","Eggs","Larvae","Ramets")), 
+         aes(year, count)) +
+    geom_line() + 
+    facet_grid(Monarch ~ site, scales="free_y") + 
+    labs(x = "Year", y = "Count",
+         title = "Yearly Monarch Adults, Eggs, Larvae, and Milkweed Ramets") +
+    # scale_y_log10() + 
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(angle=90))
+}
+
+s <- d %>% left_join(sites, by="site")
+
+monarch_region1 <- monarch_plot(s, "Northwest Iowa Plains")
+monarch_region2 <- monarch_plot(s, "Des Moines Lobe")
+monarch_region3 <- monarch_plot(s, "Southern Iowa Drift Plains")
+
+monarch_region1 
+monarch_region2 
+monarch_region3 
 ```
 
 ```{r write_monarch_plots, dependson="monarch_plot", eval=FALSE}
-ggsave(file = "include/monarch_yearly.png",
-       plot = g,
-       width = 6, 
-       height = 4)
+# ggsave(file = "include/monarch_yearly.png",
+#        plot = g,
+#        width = 6, 
+#        height = 4)
 ```
 
