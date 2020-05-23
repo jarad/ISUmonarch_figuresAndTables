@@ -10,14 +10,14 @@ header-includes:
   - \pagestyle{fancy}
   - \captionsetup[table]{skip=10pt}
   - \setcounter{table}{0}
-  - \renewcommand{\thetable}{I\arabic{table}}
-  - \renewcommand{\thefigure}{I\arabic{figure}}
+  - \renewcommand{\thetable}{C\arabic{table}}
+  - \renewcommand{\thefigure}{C\arabic{figure}}
 output: 
   pdf_document:
     fig_caption: TRUE
 ---
 
-\lhead{Appendix I}
+\lhead{Appendix C}
 
 ```{r setup, purl=FALSE, echo=FALSE}
 draft = FALSE
@@ -33,11 +33,30 @@ opts_chunk$set(echo     = draft,
 ```
 
 ```{r packages}
+# library("default")
 library("tidyverse")
-library("HabitatRestoration")
 library("xtable")
+
+options(xtable.include.rownames = FALSE,
+        xtable.comment = FALSE,
+        xtable.caption.placement = "top")
+# default(print.xtable) <- list(include.rownames = FALSE,
+#                               comment = FALSE,
+#                               caption.placement = "top")
+
+
+
 library("kableExtra")
 options(knitr.table.format = "latex")
+
+
+
+library("HabitatRestoration")
+
+max_length = function(sections) {
+  max(as.integer(unlist(regmatches(sections, gregexpr("[[:digit:]]+", sections)))))
+}
+
 ```
 
 ```{r sessionInfo, results='markup', eval=draft}
@@ -69,7 +88,7 @@ class_col <- c("Forbs"             = ISU_secondary_palette[4],
 
 class_linetype <- c("Forbs"        = "solid",
                "Milkweed"          = "solid",
-               "Warm season grass" = "dotted",
+               "Warm season grass" = "dotdash",
                "Cool season grass" = "dotted",
                "Woody plants"      = "dashed",
                "Bare ground"       = "dashed")
@@ -103,7 +122,8 @@ sites <- bind_rows(tibble(region = "Northwest Iowa Plains",
                           success = c(T,T,T,T,T,F,F),
                           color = ISU_secondary_palette[1:7]),
                    tibble(region = "Southern Iowa Drift Plains",
-                          site = c("arm1","arm2","nkn1","nkn2","cre1","gro1","gro2","ver1"),
+                          site = c("arm1","arm2","nkn1","nkn2",
+                                   "cre1","gro1","gro2","ver1"),
                           success = c(T,T,T,T,T,T,T,F),
                           color = ISU_secondary_palette[1:8])) %>%
   mutate(success = ifelse(success, "Yes","No"),
@@ -120,10 +140,24 @@ regions = c("Northwest Iowa Plains","Des Moines Lobe","Southern Iowa Drift Plain
 
 \rhead{Robel Pole Survey}
 
-Censored observations:
 
-```{r robel_censored, results='markup'}
-HabitatRestoration::robel %>% filter(censored != "not") %>% select(-observer)
+```{r robel_censored, results='asis'}
+HabitatRestoration::robel %>% 
+  filter(censored != "not") %>%
+  dplyr::mutate(height = ifelse(censored == "right", paste(">",height), height),
+                height = paste(height, "cm"),
+                date = as.character(date)) %>%
+  dplyr::rename(direction = Direction,
+                location = section,
+                transect = transectID) %>%
+  dplyr::select(-censored, -round) %>%
+  
+  xtable(caption = "The following Robel observations were above the maximum pole length of 160 cm. In the following analysis, these observations were treated as equal to the maximum pole height of 160 cm.") %>%
+  print(include.rownames = FALSE,
+        comment = FALSE,
+        caption.placement = "top")
+
+cat("\n\n")
 ```
 
 
@@ -131,11 +165,14 @@ HabitatRestoration::robel %>% filter(censored != "not") %>% select(-observer)
 
 ```{r robel_data, dependson="sites"}
 d <- HabitatRestoration::robel %>% 
-  filter(siteID %in% sites$site) %>%
-  select(siteID, year, month, height, censored) %>%
-  rename(site = siteID) %>%
-  mutate(Month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
-         Month = factor(Month, levels = c("June","July","August")))
+  dplyr::left_join(HabitatRestoration::transect, by = "transectID") %>%
+  dplyr::rename(site = siteID) %>%
+  dplyr::mutate(site = as.character(site)) %>%
+  filter(site %in% sites$site) %>%
+  select(site, date, censored, height) %>%
+  mutate(
+    year = format(date, "%Y"),
+    Month = factor(format(date, "%B"), levels = c("June","July","August")))
 
 # stopifnot(all(d$censored == "not"))
 ```
@@ -143,11 +180,12 @@ d <- HabitatRestoration::robel %>%
 
 ```{r robel_monthly_data, dependson="robel_data"}
 s <- d %>%
-  group_by(year, site, Month) %>%
+  group_by(year, Month, site) %>%
   summarize(height = mean(height)) %>%
   ungroup() %>%
-  left_join(sites, by="site") %>%
-  mutate(site = factor(site, levels = sites$site))
+  
+  dplyr::left_join(sites, by = "site") %>%
+  mutate(site = factor(site, levels = sites$site)) 
 ```
 
 
@@ -187,16 +225,20 @@ robel_monthly_table <- function(s) {
     xtable(digits = 0,
            caption = paste0("Monthly average vegetation height (cm): ", r)) %>%
     print(include.rownames = FALSE,
-          comment = FALSE)
+          comment = FALSE,
+          caption.placement = "top")
 }
 ```
 
 
-```{r, robel_monthly, dependson=c("robel_monthly_data","robel_montly_plot","robel_monthly_table"), results='asis'}
+```{r, robel_monthly, dependson=c("robel_monthly_data","robel_montly_plot","robel_monthly_table"), results='asis', fig.cap=paste("Robel monthly plots for",regions)}
 for (r in regions) {
   robel_monthly_plot(s %>% filter(region == r)) %>% print
+  cat("\n\n")
   robel_monthly_table(s %>% filter(region == r))
+  cat("\n\n")
   cat('\\clearpage')
+  cat("\n\n")
 }
 ```
 
@@ -207,6 +249,7 @@ s_yearly <- d %>%
   group_by(year, site) %>%
   summarize(height = mean(height)) %>%
   ungroup() %>%
+  
   left_join(sites, by="site") %>%
   mutate(site = factor(site, levels = sites$site))
 ```
@@ -225,7 +268,8 @@ robel_yearly_table <- function(s) {
     xtable(digits = 0,
            caption = paste0("Yearly average vegetation height (cm): ", r)) %>%
     print(include.rownames = FALSE,
-          comment = FALSE)
+          comment = FALSE,
+          caption.placement = "top")
 }
 ```
 
@@ -247,12 +291,16 @@ robel_yearly_plot <- function(s) {
 }
 ```
 
-```{r robel_yearly, dependson=c("robel_yearly_data","robel_yearly_table","robel_yearly_plot"), fig.height=4}
+```{r robel_yearly, dependson=c("robel_yearly_data","robel_yearly_table","robel_yearly_plot"), fig.cap=paste("Robel yearly vegetation plots for", regions), fig.height=4}
 for (r in regions) {
   robel_yearly_plot( s_yearly %>% filter(region == r)) %>% print
+  cat("\n\n")
   robel_yearly_table(s_yearly %>% filter(region == r))
+  cat("\n\n")
   cat('\\clearpage')
+  cat("\n\n")
 }
+
 ```
 
 
@@ -276,11 +324,13 @@ for (r in regions) {
 
 ```{r daubenmire_data, dependson="sites"}
 d <- HabitatRestoration::cover %>% 
-  filter(siteID %in% sites$site) %>%
-  select(siteID, year, month, section, class, percentage) %>%
-  rename(site = siteID) %>%
-  mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
-         month = factor(month, levels = c("June","July","August"))) %>%
+  dplyr::left_join(HabitatRestoration::transect, by = "transectID") %>%
+  dplyr::rename(site = siteID) %>%
+  filter(site %in% sites$site) %>%
+  select(site, date, class, percentage) %>%
+  mutate(
+    year = format(date, "%Y"),
+    month = factor(format(date, "%B"), levels = c("June","July","August"))) %>%
   filter(class %in% c("bare_ground","csg","forbs","milkweed","wsg","woody_species"))
 ```
 
@@ -289,8 +339,10 @@ d <- HabitatRestoration::cover %>%
 s <- d %>%
   group_by(year, site, class) %>%
   summarize(percentage = mean(percentage)) %>%
-  left_join(sites, by = "site") %>%
   ungroup() %>%
+  
+  left_join(sites, by = "site") %>%
+  
   mutate(site = factor(site, levels = sites$site),
          
          class = recode(class,
@@ -301,12 +353,14 @@ s <- d %>%
                         woody_species = "Woody plants",
                         forbs         = "Forbs"),
          class = factor(class, 
-                        levels = c("Forbs",
-                                   "Milkweed",
-                                   "Warm season grass",
+                        levels = c("Bare ground",
                                    "Cool season grass",
-                                   "Woody plants",
-                                   "Bare ground")))
+                                   "Warm season grass",
+                                   "Forbs",
+                                   "Milkweed",
+                                   "Woody plants")
+                        )
+         )
 ```
 
 
@@ -316,6 +370,7 @@ daubenmire_yearly_table <- function(s) {
  
   s %>% 
     select(site, year, class, percentage) %>%
+    dplyr::arrange(site, year, class) %>%
     pivot_wider(names_from = class,
                 values_from = percentage) %>%
     arrange(site, year) %>%
@@ -323,18 +378,19 @@ daubenmire_yearly_table <- function(s) {
     xtable(caption = paste0("Yearly average cover by class: ", r),
            digits = c(0,0,0,rep(1,6))) %>%
     print(include.rownames = FALSE,
-          comment = FALSE)
+          comment = FALSE,
+          caption.placement = "top")
 }
 ```
 
 
-```{r daubenmire_yearly_plot, dependson=c("daubenmire_yearly_data","palette"),fig.cap="Yearly average percent cover of forbs, milkweed, warm season grasses, cool season grasses, woody species, and bare ground from 2016 – 2019."}
+```{r daubenmire_yearly_plot, dependson="palette"}
 daubenmire_yearly_plot <- function(s) {
   r = unique(s$region)
     
   ggplot(s, 
-         aes(year, percentage, color=class, linetype = class)) +
-  geom_line() + 
+         aes(year, percentage, color=class, linetype = class, group = class)) +
+  geom_line(size=1.1) + 
   facet_wrap( ~ site, scales = "free_y") +
   labs(x = "Year", y = "Average Cover", 
        title = paste0("Yearly Average Cover by Class: ", r)) +
@@ -342,7 +398,8 @@ daubenmire_yearly_plot <- function(s) {
   scale_linetype_manual(values = class_linetype) +
   theme_bw() + 
   theme(legend.position = "bottom", 
-        axis.text.x = element_text(angle=90))
+        axis.text.x = element_text(angle=90),
+        legend.key.width = unit(3, "line"))
 }
 ```
 
@@ -352,7 +409,13 @@ daubenmire_yearly_cumulative_plot <- function(s) {
   r = unique(s$region)
   
   ggplot(s %>%
-           filter(region == r), 
+           filter(region == r) %>%
+           dplyr::mutate(class = factor(class, 
+                                        levels = c("Milkweed","Forbs",
+                                                   "Warm season grass",
+                                                   "Cool season grass",
+                                                   "Woody plants",
+                                                   "Bare ground"))), 
          aes(year, percentage,
              fill = class, 
              # linetype = class, 
@@ -370,12 +433,16 @@ daubenmire_yearly_cumulative_plot <- function(s) {
 
 
 
-```{r daubenmire_yearly, dependson=c("daubenmire_yearly_data","daubenmire_yearly_table","daubenmire_yearly_plot","daubenmire_yearly_cumulative_plot")}
+```{r daubenmire_yearly, dependson=c("daubenmire_yearly_data","daubenmire_yearly_table","daubenmire_yearly_plot","daubenmire_yearly_cumulative_plot"), fig.cap=paste("Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 for",rep(regions, each=2))}
 for (r in regions) {
   daubenmire_yearly_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
   daubenmire_yearly_cumulative_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
   daubenmire_yearly_table(s %>% filter(region == r))
+  cat("\n\n")
   cat('\\clearpage')
+  cat("\n\n")
 }
 ```
 
@@ -403,15 +470,28 @@ for (r in regions) {
 \rhead{Nectar Plant Survey}
 
 ```{r nectar_data, dependson="sites"}
-d <- HabitatRestoration::nectar %>% 
-  filter(siteID %in% sites$site) %>%
-  select(siteID, year, month, `Nectar Plant Species`, count) %>%
-  rename(site = siteID) %>%
-  mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
-         month = factor(month, levels = c("June","July","August"))) %>%
+transect_length <- HabitatRestoration::nectar_surveys %>%
   
-  rename(common_name = `Nectar Plant Species`) %>%
-  left_join(HabitatRestoration::species, by="common_name") %>%
+  dplyr::group_by(date, transectID) %>%
+  dplyr::summarize(transect_length = max_length(section)) %>%
+  dplyr::ungroup()
+
+
+d <- HabitatRestoration::nectar %>% 
+  dplyr::left_join(HabitatRestoration::transect %>% select(siteID, transectID),
+                   by = "transectID") %>%
+  dplyr::left_join(transect_length, by = c("date","transectID")) %>%
+  
+  dplyr::rename(
+    site = siteID,
+    common_name = `Nectar Plant Species`) %>%
+  
+  dplyr::left_join(HabitatRestoration::species %>% 
+                     select(common_name, planted_non_planted, native_introduced_both), 
+                   by="common_name") %>%
+  # # removes white campion and yellow clover
+  # dplyr::filter(!is.na(planted_non_planted)) %>%
+  
   rename(native = native_introduced_both) %>%
   mutate(native = recode(native, 
                          native     = "Native (extant)",
@@ -421,32 +501,44 @@ d <- HabitatRestoration::nectar %>%
                          "Native (planted)", native),
          
          native = ifelse(common_name == "marestail",
-                         "Introduced/weed", native))
+                         "Introduced/weed", native))  %>%
+  mutate(
+    year  = format(date, "%Y"),
+    month = factor(format(date, "%B"), levels = c("June","July","August"))) %>%
+  
+  select(year, month, site, transect_length, common_name, native, count) %>%
+  
+  filter(site %in% sites$site)
 ```
 
 
 ```{r nectar_monthly_data, dependson="nectar_data"}
 s1 <- d %>% 
-  group_by(year, site, month) %>%
-  summarize(total = mean(count)) %>%
-  left_join(sites, by = "site") %>%
+  group_by(year, month, site, transect_length) %>%
+  summarize(total = sum(count)) %>%
   ungroup() %>%
+  
+  left_join(sites, by = "site") %>%
+  
   mutate(native = "Combined",
-         site = factor(site, levels = sites$site))
+         site = factor(site, levels = sites$site),
+         total = total / transect_length * 100)
 
-# need to fix "density" for shorter transects
-         # total = ifelse(site == "Crawfordsville", total/.7, total))
 
 s2 <- d %>% 
   mutate(native = recode(native, 
                          `Native (planted)` = "Native",
                          `Native (extant)`  = "Native",
                          `Introduced/weed`  = "Introduced")) %>%
-  group_by(year, site, month, native) %>%
-  summarize(total = mean(count)) %>%
-  left_join(sites, by = "site") %>%
+  
+  group_by(year, site, month, native, transect_length) %>%
+  summarize(total = sum(count)) %>%
   ungroup() %>%
-  mutate(site = factor(site, levels = sites$site)) 
+  
+  dplyr::left_join(sites, by = "site") %>%
+  
+  mutate(site = factor(site, levels = sites$site),
+         total = total / transect_length * 100) 
 
 # %>%
 # 
@@ -471,7 +563,6 @@ nectar_monthly_table <- function(s) {
   r = unique(s$region)
   
   s %>% 
-    mutate(month = recode(month, June = "6", July = "7", August = "8")) %>%
     select(site, year, month, total, native) %>%
     unite("year_month", year, month, sep="_") %>%
     pivot_wider(names_from = year_month,
@@ -479,15 +570,18 @@ nectar_monthly_table <- function(s) {
     arrange(site, native) %>%
     
     xtable(digits = 0,
-           caption = paste0("Average Monthly Inflorescence: ", r)) %>%
+           caption = paste0("Total Monthly Inflorescence: ", r),
+           align = "lll|rrr|rrr|rrr|rrr|") %>%
     print(include.rownames = FALSE,
-          comment = FALSE)
+          comment = FALSE,
+          caption.placement = "top",
+          rotate.colnames = TRUE)
 }
 ```
 
 
 
-```{r nectar_monthly_plot, dependson="palette",fig.height=8,fig.cap="Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site."}
+```{r nectar_monthly_plot, dependson="palette",fig.height=8}
 nectar_monthly_plot <- function(s) {
   r = unique(s$region)
   
@@ -496,8 +590,8 @@ nectar_monthly_plot <- function(s) {
              linetype = month, group = month, color = month)) +
     geom_line() + 
     facet_grid(site ~ native, scales="free_y") + 
-    labs(x = "Year", y = "Average Inflorescence (count/100m2)", 
-         title = paste0("Average Monthly Inflorescence: ", r),
+    labs(x = "Year", y = "Total Inflorescence (count/100m2)", 
+         title = paste0("Total Monthly Inflorescence: ", r),
          linetype = "Month", color = "Month") +
   # scale_y_log10() +
   scale_color_manual(values = month_col) + 
@@ -508,12 +602,16 @@ nectar_monthly_plot <- function(s) {
 ```
 
 
-```{r nectar_monthly, dependson=c("nectar_monthly_data","nectar_monthly_plot","nectar_monthly_table")}
+```{r nectar_monthly, dependson=c("nectar_monthly_data","nectar_monthly_plot","nectar_monthly_table"), fig.cap=paste("Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site in", regions)}
 for (r in regions) {
   nectar_monthly_plot( s_both %>% filter(region == r)) %>% print
+  cat("\n\n")
   nectar_monthly_table(s_both %>% filter(region == r))
+  cat("\n\n")
   cat('\\clearpage')
+  cat("\n\n")
 }
+
 ```
 
 
@@ -557,13 +655,15 @@ ss <- s %>%
   mutate(log_ratio = log10(`2019`+1) - log10(`2018`+1)) %>% 
   # arrange(native, log_ratio, common_name, site) %>%
   select(site, common_name, native, log_ratio) %>%
-  spread(site, log_ratio, fill=NA) %>%
-  
-  # Manually filter species with only 1 site with data and
-  # ratio is close to zero
-  filter(!(common_name %in% c("blue wild indigo","canada goldenrod",
-                              "common evening primrose","prostrate vervain",
-                              "hawkweed","smartweed","common milkweed")))
+  spread(site, log_ratio, fill=NA) 
+
+# %>%
+#   
+#   # Manually filter species with only 1 site with data and
+#   # ratio is close to zero
+#   filter(!(common_name %in% c("blue wild indigo","canada goldenrod",
+#                               "common evening primrose","prostrate vervain",
+#                               "hawkweed","smartweed","common milkweed")))
 
 # ss %>% write_csv("include/nectar_ratio.csv")
 ```
@@ -635,8 +735,6 @@ ss <- s %>%
   mutate(native = factor(native, levels=c("Native (planted)","Native (extant)",
                                           "Introduced/weed"))) %>%
   
-  # cra1 has a 70m transect, so adjust to 100m density
-  mutate(density = ifelse(site == "Crawfordsville", density/.7, density)) %>%
   unite("site_year", site, year, sep="@") %>%
   spread(site_year, density, fill = NA) %>%
   arrange(native, common_name) %>%
@@ -712,7 +810,8 @@ nectar_heatmap_table <- function(s) {
 nectar_heatmap_plot <- function(s) {
   r = unique(s$region)
   
-  ggplot(s, 
+  ggplot(s %>%
+           filter(total > 0.1), 
          aes(year, common_name, fill = total)) +
     geom_tile() + 
     # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
@@ -722,15 +821,17 @@ nectar_heatmap_plot <- function(s) {
     theme(legend.position = "none",
           axis.text.x = element_text(angle=90),
           axis.text.y = element_text(hjust=0)) +
-    labs(x = "", y = "", title = r) 
+    labs(x = "", y = "", title = paste0(r," (< 0.1 observations removed)")) 
 }
 ```
 
-```{r nectar_heatmap, dependson=c("nectar_heatmap_data","nectar_heatmap_plot")}
+```{r nectar_heatmap, dependson=c("nectar_heatmap_data","nectar_heatmap_plot"), fig.cap=paste("Heatmaps of inflorescent data in", regions)}
 for (r in regions) {
   nectar_heatmap_plot( ss %>% filter(region == r)) %>% print
+  cat("\n\n")
   # nectar_monthly_table(s_both %>% filter(region == r))
   cat('\\clearpage')
+  cat("\n\n")
 }
 ```
 
@@ -748,18 +849,13 @@ for (r in regions) {
 
 ```{r monarch_data, dependson="sites"}
 d <- HabitatRestoration::monarch %>% 
+  dplyr::left_join(transect %>% select(siteID,transectID), by="transectID") %>%
   filter(siteID %in% sites$site,
          type != "palmer amaranth") %>%
   rename(site = siteID) %>%
-  mutate(month = recode(month, `6` = "June", `7` = "July", `8` = "August"),
-         month = factor(month, levels = c("June","July","August"))) %>%
-         
-         # ?? Use readable names
-         # site = recode(site, 
-         #                 byd1 = "Boyd 1", 
-         #                 byd2 = "Boyd 2",
-         #                 cra1 = "Crawfordsville",
-         #                 uth3 = "Uthe 3")) %>% 
+  mutate(
+    year = format(date, "%Y"),
+    month = factor(format(date, "%B"), levels = c("June","July","August"))) %>%
   
   group_by(year, site, type, milkweed) %>%
   summarize(total = sum(count)) %>%
@@ -795,38 +891,46 @@ d <- HabitatRestoration::monarch %>%
                                 "Ramets, butterfly", "Ramets, common", "Ramets, swamp", "Ramets, total"))) %>%
   ungroup() %>%
   left_join(sites, by="site") %>%
-  mutate(site = factor(site, levels = sites$site))
+  mutate(site = factor(site, levels = sites$site)) %>%
+  arrange(site, year)
 ```
 
 
 
-```{r monarch_table, dependson="monarch_data"}
+```{r monarch_table}
 monarch_table <- function(s) {
   r = unique(s$region)
   
   s %>% 
     select(year, site, Monarch, count) %>%
-    pivot_wider(names_from = year,
+    tidyr::unite("site_year", site, year, sep="_") %>%
+    pivot_wider(names_from = site_year,
                 values_from = count) %>%
-    arrange(site, Monarch) %>%
+    arrange(Monarch)  %>%
     
     xtable(digits = 0, 
            caption = paste0("Yearly monarch stages and milkweed ramets: ", r)) %>%
+    
     print(comment = FALSE,
-          include.rownames=FALSE)
+          include.rownames=FALSE,
+          caption.placement = "top",
+          rotate.colnames = TRUE,
+          floating.environment = "sidewaystable",
+          hline.after = c(-1,0,2,6,10,14))
 }
 ```
 
 
 
-```{r monarch_plot, dependson="palette",fig.cap="Yearly observed monarch eggs, larvae, and adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined)."}
+```{r monarch_plot, dependson="palette"}
 monarch_plot <- function(s) {
   r = unique(s$region)
   
   ggplot(s %>%
            mutate(Monarch = sub(", total","",Monarch)) %>%
            filter(Monarch %in% c("Adults","Eggs","Larvae","Ramets")), 
-         aes(year, count)) +
+         aes(year, count, group = Monarch)) +
+    # geom_point() + 
     geom_line() + 
     facet_grid(Monarch ~ site, scales="free_y") + 
     labs(x = "Year", y = "Count",
@@ -840,11 +944,14 @@ monarch_plot <- function(s) {
 
 
 
-```{r monarch_yearly, dependson=c("monarch_data","monarch_table","monarch_plot")}
+```{r monarch_yearly, dependson=c("monarch_data","monarch_table","monarch_plot"), fig.cap=paste("Yearly observed monarch eggs, larvae, and adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined) for sites in", regions)}
 for (r in regions) {
   monarch_plot( d %>% filter(region == r)) %>% print
+  cat("\n\n")
   monarch_table(d %>% filter(region == r))
+  cat("\n\n")
   cat('\\clearpage')
+  cat("\n\n")
 }
 ```
 
