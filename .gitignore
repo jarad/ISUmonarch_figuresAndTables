@@ -19,6 +19,11 @@ vignettes/*.pdf
 # knitr and R markdown default cache directories
 /*_cache/
 /cache/
+.drake/
+NCIG/NCIG_cache/
+NCIG/NCIG_files/
+
+
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md

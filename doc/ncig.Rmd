@@ -1,0 +1,148 @@
+---
+title: ""
+author: ""
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{rotating}
+  - \usepackage{caption} 
+  - \usepackage{float}
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \captionsetup[table]{skip=10pt}
+  - \setcounter{table}{0}
+  - \renewcommand{\thetable}{C\arabic{table}}
+  - \renewcommand{\thefigure}{C\arabic{figure}}
+output: 
+  pdf_document:
+    fig_caption: TRUE
+---
+
+\lhead{Appendix C}
+
+```{r setup, purl=FALSE, echo=FALSE}
+draft = FALSE
+
+library("knitr")
+opts_chunk$set(echo     = draft, 
+               results  = 'asis',
+               message  = draft,
+               warnings = draft,
+               cache    = FALSE,
+               fig.pos  = "b!",
+               fig.height = 7)
+```
+
+```{r packages}
+# # library("default")
+# library("tidyverse")
+# library("xtable")
+# 
+# options(xtable.include.rownames = FALSE,
+#         xtable.comment = FALSE,
+#         xtable.caption.placement = "top")
+# # default(print.xtable) <- list(include.rownames = FALSE,
+# #                               comment = FALSE,
+# #                               caption.placement = "top")
+# 
+# 
+# 
+# library("kableExtra")
+# options(knitr.table.format = "latex")
+# 
+# 
+# 
+# library("HabitatRestoration")
+```
+
+```{r sessionInfo, results='markup', eval=draft}
+sessionInfo()
+```
+
+```{r palette, cache=TRUE}
+ISU_primary_palette   <- c("#C8102E", "#F1BE48", "#524727", 
+                           "#9B945F", "#CAC7A7")
+
+ISU_secondary_palette <- c("#3E4827", "#76881D", "#A2A569",
+                           "#003D4C", "#006BA6", "#7A99AC",
+                           "#7C2529", "#9A3324", "#BE531C",
+                           "#8B5B29", "#B9975B", "#EED484",
+                           "#6E6259", "#707372", "#ACA39A")
+
+####################################################################
+
+month_col <- c("June"   = ISU_primary_palette[3], 
+               "July"   = ISU_primary_palette[2],
+               "August" = ISU_primary_palette[1])
+
+class_col <- c("Forbs"             = ISU_secondary_palette[4],
+               "Milkweed"          = ISU_secondary_palette[9],
+               "Warm season grass" = ISU_secondary_palette[1],
+               "Cool season grass" = ISU_secondary_palette[2],
+               "Woody plants"      = ISU_secondary_palette[11],
+               "Bare ground"       = ISU_secondary_palette[10])
+
+class_linetype <- c("Forbs"        = "solid",
+               "Milkweed"          = "solid",
+               "Warm season grass" = "dotdash",
+               "Cool season grass" = "dotted",
+               "Woody plants"      = "dashed",
+               "Bare ground"       = "dashed")
+```
+
+\setlength{\tabcolsep}{3pt}
+
+
+```{r sites}
+sites <- bind_rows(tibble(region = "Northwest Iowa Plains",
+                          site = c("prd1","prd2","sut2","all1","all2"),
+                          success = c(T,T,T,F,F),
+                          color = ISU_secondary_palette[1:5]),
+                   tibble(region = "Des Moines Lobe",
+                          site = c("dun2","dun3","pio1","pio2","nor1","ber1","ber3"),
+                          success = c(T,T,T,T,T,F,F),
+                          color = ISU_secondary_palette[1:7]),
+                   tibble(region = "Southern Iowa Drift Plains",
+                          site = c("arm1","arm2","nkn1","nkn2",
+                                   "cre1","gro1","gro2","ver1"),
+                          success = c(T,T,T,T,T,T,T,F),
+                          color = ISU_secondary_palette[1:8])) %>%
+  mutate(success = ifelse(success, "Yes","No"),
+         success = factor(success, levels = c("Yes","No")))
+
+site_linetype <- 2 - (sites$success == "Yes")
+names(site_linetype) <- sites$site
+
+
+regions = c("Northwest Iowa Plains","Des Moines Lobe","Southern Iowa Drift Plains")
+```
+
+
+
+\rhead{Robel Pole Survey}
+
+
+
+
+
+
+
+
+
+```{r robel_monthly, dependson=c("robel_monthly_data","robel_montly_plot","robel_monthly_table"), results='asis', fig.cap=paste("Robel monthly plots for",regions)}
+for (r in regions) {
+  robel_monthly_plot(s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  robel_monthly_table(s %>% filter(region == r))
+  cat("\n\n")
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
+
+
+
+
+
+
+
+
