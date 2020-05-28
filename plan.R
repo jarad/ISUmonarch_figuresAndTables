@@ -14,9 +14,12 @@ plan = drake_plan(
   
   monarch = get_monarch(),
   
-  ncig_report = rmarkdown::render(
-    knitr_in("doc/ncig.Rmd"),
-    output_file = file_out("doc/ncig.pdf")
+  ncig_sites = get_ncig_sites(),
+  ncig_report = target( 
+    command = {
+      rmarkdown::render(knitr_in("doc/ncig.Rmd"))
+      file_out("doc/ncig.pdf")
+    }
   )
   
   

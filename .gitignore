@@ -22,6 +22,10 @@ vignettes/*.pdf
 .drake/
 NCIG/NCIG_cache/
 NCIG/NCIG_files/
+doc/ncig_cache/
+doc/ncig_files/
+doc/ncig.tex
+doc/ncig.pdf
 
 
 # Temporary files created by R markdown

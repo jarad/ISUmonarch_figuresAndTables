@@ -33,102 +33,43 @@ opts_chunk$set(echo     = draft,
 ```
 
 ```{r packages}
-# # library("default")
-# library("tidyverse")
-# library("xtable")
-# 
-# options(xtable.include.rownames = FALSE,
-#         xtable.comment = FALSE,
-#         xtable.caption.placement = "top")
-# # default(print.xtable) <- list(include.rownames = FALSE,
-# #                               comment = FALSE,
-# #                               caption.placement = "top")
-# 
-# 
-# 
-# library("kableExtra")
-# options(knitr.table.format = "latex")
-# 
-# 
-# 
-# library("HabitatRestoration")
+library("drake")
+loadd(ncig_sites)
+loadd(robel_monthly)
+loadd(robel_yearly)
+loadd(cover_yearly)
+loadd(nectar_monthly)
+loadd(nectar_by_species)
+loadd(monarch)
 ```
 
 ```{r sessionInfo, results='markup', eval=draft}
 sessionInfo()
 ```
 
-```{r palette, cache=TRUE}
-ISU_primary_palette   <- c("#C8102E", "#F1BE48", "#524727", 
-                           "#9B945F", "#CAC7A7")
-
-ISU_secondary_palette <- c("#3E4827", "#76881D", "#A2A569",
-                           "#003D4C", "#006BA6", "#7A99AC",
-                           "#7C2529", "#9A3324", "#BE531C",
-                           "#8B5B29", "#B9975B", "#EED484",
-                           "#6E6259", "#707372", "#ACA39A")
-
-####################################################################
-
-month_col <- c("June"   = ISU_primary_palette[3], 
-               "July"   = ISU_primary_palette[2],
-               "August" = ISU_primary_palette[1])
-
-class_col <- c("Forbs"             = ISU_secondary_palette[4],
-               "Milkweed"          = ISU_secondary_palette[9],
-               "Warm season grass" = ISU_secondary_palette[1],
-               "Cool season grass" = ISU_secondary_palette[2],
-               "Woody plants"      = ISU_secondary_palette[11],
-               "Bare ground"       = ISU_secondary_palette[10])
-
-class_linetype <- c("Forbs"        = "solid",
-               "Milkweed"          = "solid",
-               "Warm season grass" = "dotdash",
-               "Cool season grass" = "dotted",
-               "Woody plants"      = "dashed",
-               "Bare ground"       = "dashed")
-```
-
 \setlength{\tabcolsep}{3pt}
 
 
 ```{r sites}
-sites <- bind_rows(tibble(region = "Northwest Iowa Plains",
-                          site = c("prd1","prd2","sut2","all1","all2"),
-                          success = c(T,T,T,F,F),
-                          color = ISU_secondary_palette[1:5]),
-                   tibble(region = "Des Moines Lobe",
-                          site = c("dun2","dun3","pio1","pio2","nor1","ber1","ber3"),
-                          success = c(T,T,T,T,T,F,F),
-                          color = ISU_secondary_palette[1:7]),
-                   tibble(region = "Southern Iowa Drift Plains",
-                          site = c("arm1","arm2","nkn1","nkn2",
-                                   "cre1","gro1","gro2","ver1"),
-                          success = c(T,T,T,T,T,T,T,F),
-                          color = ISU_secondary_palette[1:8])) %>%
-  mutate(success = ifelse(success, "Yes","No"),
-         success = factor(success, levels = c("Yes","No")))
+site_linetype <- 2 - (ncig_sites$success == "Yes")
+names(site_linetype) <- ncig_sites$site
 
-site_linetype <- 2 - (sites$success == "Yes")
-names(site_linetype) <- sites$site
+regions = unique(ncig_sites$region)
 
-
-regions = c("Northwest Iowa Plains","Des Moines Lobe","Southern Iowa Drift Plains")
+filter_ncig <- function(d) {
+  d %>%
+    dplyr::left_join(ncig_sites, by = "site") %>%
+    mutate(site = factor(site, levels = sites$site)) %>%
+    filter( !is.na(region) )
+}
 ```
-
-
 
 \rhead{Robel Pole Survey}
 
 
+```{r robel_monthly, results='asis', fig.cap=paste("Robel monthly plots for",regions)}
+s = filter_ncig(robel_monthly)
 
-
-
-
-
-
-
-```{r robel_monthly, dependson=c("robel_monthly_data","robel_montly_plot","robel_monthly_table"), results='asis', fig.cap=paste("Robel monthly plots for",regions)}
 for (r in regions) {
   robel_monthly_plot(s %>% filter(region == r)) %>% print
   cat("\n\n")
@@ -139,10 +80,91 @@ for (r in regions) {
 }
 ```
 
+```{r robel_yearly, fig.cap=paste("Robel yearly vegetation plots for", regions), fig.height=4}
+s = filter_ncig(robel_yearly)
+
+for (r in regions) {
+  robel_yearly_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  robel_yearly_table(s %>% filter(region == r))
+  cat("\n\n")
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
+
+
+
+\clearpage
+
+\rhead{Daubenmire Survey}
+
+```{r daubenmire_yearly, dependson=c("daubenmire_yearly_data","daubenmire_yearly_table","daubenmire_yearly_plot","daubenmire_yearly_cumulative_plot"), fig.cap=paste("Trends in yearly cumulative percent cover by vegetative class and bare soil from 2016 through 2019 for", rep(regions, each=2))}
+s = filter_ncig(cover_yearly)
+
+for (r in regions) {
+  daubenmire_yearly_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  daubenmire_yearly_cumulative_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  daubenmire_yearly_table(s %>% filter(region == r))
+  cat("\n\n")
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
 
 
 
 
+\clearpage
+
+\rhead{Nectar Plant Survey}
 
 
+```{r nectar_monthly, dependson=c("nectar_monthly_data","nectar_monthly_plot","nectar_monthly_table"), fig.cap=paste("Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site in", regions)}
+s = filter_ncig(nectar_monthly)
+
+for (r in regions) {
+  nectar_monthly_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  nectar_monthly_table(s %>% filter(region == r))
+  cat("\n\n")
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
+
+
+
+```{r nectar_heatmap, dependson=c("nectar_heatmap_data","nectar_heatmap_plot"), fig.cap=paste("Heatmaps of inflorescent data in", regions)}
+s = filter_ncig(nectar_by_species)
+
+for (r in regions) {
+  nectar_heatmap_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  # nectar_monthly_table(s_both %>% filter(region == r))
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
+
+
+
+\clearpage
+
+\rhead{Monarch Survey}
+
+```{r monarch_yearly, dependson=c("monarch_data","monarch_table","monarch_plot"), fig.cap=paste("Yearly observed monarch eggs, larvae, and adults during a site visit and total number of milkweed ramets (butterfly, common and swamp combined) for sites in", regions)}
+s = filter_ncig(monarch)
+
+for (r in regions) {
+  monarch_plot( s %>% filter(region == r)) %>% print
+  cat("\n\n")
+  monarch_table(s %>% filter(region == r))
+  cat("\n\n")
+  cat('\\clearpage')
+  cat("\n\n")
+}
+```
 
