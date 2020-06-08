@@ -13,12 +13,13 @@ source("R/max_length.R")
 source("R/palette.R")
 source("R/new_colnames.R")
 
+source("R/get_sites.R")
 source("R/get_robel.R")
 source("R/get_cover.R")
 source("R/get_nectar.R")
 source("R/get_monarch.R")
 
-source("R/get_ncig_sites.R")
+# source("R/get_ncig_sites.R")
 
 source("R/summarize_robel_monthly.R")
 source("R/summarize_robel_yearly.R")

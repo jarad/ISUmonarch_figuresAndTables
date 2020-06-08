@@ -1,8 +1,7 @@
-nectar_heatmap_plot = function(nectar_by_species) {
-  r = unique(nectar_by_species$region)
-  
+nectar_heatmap_plot = function(nectar_by_species, region) {
   ggplot(nectar_by_species %>%
-           filter(total > 0.1), 
+           filter(total > 0.1,
+                  region == region), 
          aes(year, common_name, fill = total)) +
     geom_tile() + 
     # scale_y_discrete(limits = rev(levels(as.factor(s$common_name)))) +
@@ -12,5 +11,5 @@ nectar_heatmap_plot = function(nectar_by_species) {
     theme(legend.position = "none",
           axis.text.x = element_text(angle=90),
           axis.text.y = element_text(hjust=0)) +
-    labs(x = "", y = "", title = paste0(r," (< 0.1 observations removed)")) 
+    labs(x = "", y = "", title = paste0(region," (< 0.1 observations removed)")) 
 }

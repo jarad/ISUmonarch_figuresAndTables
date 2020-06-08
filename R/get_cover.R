@@ -2,7 +2,6 @@ get_cover = function() {
   HabitatRestoration::cover %>% 
     dplyr::left_join(HabitatRestoration::transect, by = "transectID") %>%
     dplyr::rename(site = siteID) %>%
-    filter(site %in% sites$site) %>%
     select(site, date, class, percentage) %>%
     mutate(
       year = format(date, "%Y"),

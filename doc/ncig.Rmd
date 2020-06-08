@@ -34,6 +34,7 @@ opts_chunk$set(echo     = draft,
 
 ```{r packages}
 library("drake")
+loadd(palette)
 loadd(ncig_sites)
 loadd(robel_monthly)
 loadd(robel_yearly)
@@ -51,15 +52,20 @@ sessionInfo()
 
 
 ```{r sites}
-site_linetype <- 2 - (ncig_sites$success == "Yes")
-names(site_linetype) <- ncig_sites$site
+linetype <- 2 - (ncig_sites$success == "Yes")
+names(linetype) <- ncig_sites$site
+
+color <- c(ISU_secondary_palette, ISU_secondary_palette[1:6])
+names(color) <- c("all1", "all2", "arm1", "arm2", "ber1", "ber3", "cre1",
+                       "dun2", "dun3", "gro1", "gro2", "nkn1", "nkn2", "nor1",
+                       "pio1", "pio2", "prd1", "prd2", "sie1", "sut2", "ver1")
 
 regions = unique(ncig_sites$region)
 
 filter_ncig <- function(d) {
   d %>%
     dplyr::left_join(ncig_sites, by = "site") %>%
-    mutate(site = factor(site, levels = sites$site)) %>%
+    mutate(site = factor(site, levels = ncig_sites$site)) %>%
     filter( !is.na(region) )
 }
 ```
@@ -71,7 +77,7 @@ filter_ncig <- function(d) {
 s = filter_ncig(robel_monthly)
 
 for (r in regions) {
-  robel_monthly_plot(s %>% filter(region == r)) %>% print
+  robel_monthly_plot(s %>% filter(region == r), palette) %>% print
   cat("\n\n")
   robel_monthly_table(s %>% filter(region == r))
   cat("\n\n")
@@ -84,7 +90,8 @@ for (r in regions) {
 s = filter_ncig(robel_yearly)
 
 for (r in regions) {
-  robel_yearly_plot( s %>% filter(region == r)) %>% print
+  robel_yearly_plot( s %>% filter(region == r), 
+                     color = color, linetype = linetype) %>% print
   cat("\n\n")
   robel_yearly_table(s %>% filter(region == r))
   cat("\n\n")
@@ -103,11 +110,11 @@ for (r in regions) {
 s = filter_ncig(cover_yearly)
 
 for (r in regions) {
-  daubenmire_yearly_plot( s %>% filter(region == r)) %>% print
+  cover_yearly_plot( s %>% filter(region == r), palette) %>% print
   cat("\n\n")
-  daubenmire_yearly_cumulative_plot( s %>% filter(region == r)) %>% print
+  cover_yearly_cumulative_plot( s %>% filter(region == r), palette) %>% print
   cat("\n\n")
-  daubenmire_yearly_table(s %>% filter(region == r))
+  cover_yearly_table(s %>% filter(region == r))
   cat("\n\n")
   cat('\\clearpage')
   cat("\n\n")
@@ -122,11 +129,11 @@ for (r in regions) {
 \rhead{Nectar Plant Survey}
 
 
-```{r nectar_monthly, dependson=c("nectar_monthly_data","nectar_monthly_plot","nectar_monthly_table"), fig.cap=paste("Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site in", regions)}
+```{r nectar_monthly, fig.cap=paste("Plots of monthly average native forbs, extant native forbs, introduced/weed species, and combined (native and introduced/weed) nectar plant inflorescence density by year for each site in", regions)}
 s = filter_ncig(nectar_monthly)
 
 for (r in regions) {
-  nectar_monthly_plot( s %>% filter(region == r)) %>% print
+  nectar_monthly_plot( s %>% filter(region == r), palette) %>% print
   cat("\n\n")
   nectar_monthly_table(s %>% filter(region == r))
   cat("\n\n")

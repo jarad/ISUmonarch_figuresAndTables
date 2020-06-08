@@ -1,0 +1,21 @@
+region,site,success,color
+Northwest Iowa Plains,prd1,Yes,#3E4827
+Northwest Iowa Plains,prd2,Yes,#76881D
+Northwest Iowa Plains,sut2,Yes,#A2A569
+Northwest Iowa Plains,all1,No,#003D4C
+Northwest Iowa Plains,all2,No,#006BA6
+Des Moines Lobe,dun2,Yes,#3E4827
+Des Moines Lobe,dun3,Yes,#76881D
+Des Moines Lobe,pio1,Yes,#A2A569
+Des Moines Lobe,pio2,Yes,#003D4C
+Des Moines Lobe,nor1,Yes,#006BA6
+Des Moines Lobe,ber1,No,#7A99AC
+Des Moines Lobe,ber3,No,#7C2529
+Southern Iowa Drift Plains,arm1,Yes,#3E4827
+Southern Iowa Drift Plains,arm2,Yes,#76881D
+Southern Iowa Drift Plains,nkn1,Yes,#A2A569
+Southern Iowa Drift Plains,nkn2,Yes,#003D4C
+Southern Iowa Drift Plains,cre1,Yes,#006BA6
+Southern Iowa Drift Plains,gro1,Yes,#7A99AC
+Southern Iowa Drift Plains,gro2,Yes,#7C2529
+Southern Iowa Drift Plains,ver1,No,#9A3324
